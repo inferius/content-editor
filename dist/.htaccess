@@ -1,0 +1,19 @@
+# Sestaveny editor (CSS/JS) - verejny. Zdroje (src/, tools/) ne - viz packages/.htaccess.
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order deny,allow
+    Allow from all
+</IfModule>
+
+# ES moduly se importuji navzajem bez verze v URL - prohlizec je musi
+# pri kazdem nacteni overit (304 z cache), jinak by po nasazeni bezela stara verze.
+<IfModule mod_headers.c>
+    <FilesMatch "\.(js|css)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>
+<IfModule mod_mime.c>
+    AddType text/javascript .js
+</IfModule>

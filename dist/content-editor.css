@@ -1,0 +1,2064 @@
+/* ==========================================================================
+   Content editor - blokovy editor obsahu
+   Barvy z tokenu administrace (--adm-*), jinak vychozi hodnoty.
+   ========================================================================== */
+.ce-root,
+.ce-modal,
+.ce-menu,
+.ce-bubble {
+    --ce-bg: var(--adm-surface, #fff);
+    --ce-bg-2: var(--adm-surface-2, #f8f9fa);
+    --ce-bg-3: var(--adm-surface-3, #eef0f3);
+    --ce-raised: var(--adm-raised, #fff);
+    --ce-border: var(--adm-border, rgba(15, 23, 42, .09));
+    --ce-border-strong: var(--adm-border-strong, rgba(15, 23, 42, .16));
+    --ce-input-border: var(--adm-input-border, rgba(15, 23, 42, .22));
+    --ce-input-bg: var(--adm-input-bg, #fff);
+    --ce-text: var(--adm-text, rgba(0, 0, 0, .87));
+    --ce-text-2: var(--adm-text-2, rgba(0, 0, 0, .64));
+    --ce-muted: var(--adm-muted, rgba(0, 0, 0, .5));
+    --ce-hover: var(--adm-hover, rgba(15, 23, 42, .05));
+    --ce-chip: var(--adm-chip, rgba(15, 23, 42, .07));
+    --ce-accent: var(--adm-accent, #00a2e8);
+    --ce-active-bg: var(--adm-active-bg, rgba(0, 162, 232, .1));
+    --ce-primary: var(--adm-primary, #1d67e7);
+    --ce-primary-hover: var(--adm-primary-hover, #1759cf);
+    --ce-on-primary: var(--adm-on-primary, #fff);
+    --ce-danger: var(--adm-danger, #c9302c);
+    --ce-danger-soft: var(--adm-danger-soft, rgba(217, 83, 79, .12));
+    --ce-focus: var(--adm-focus, 0 0 0 3px rgba(0, 162, 232, .32));
+    --ce-shadow-lg: var(--adm-shadow-lg, 0 14px 34px rgba(16, 24, 40, .16), 0 2px 6px rgba(16, 24, 40, .06));
+    --ce-radius: var(--adm-radius, 8px);
+    --ce-radius-sm: var(--adm-radius-sm, 6px);
+    --ce-radius-lg: var(--adm-radius-lg, 12px);
+    --ce-gutter: 52px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ce-text-2);
+    box-sizing: border-box;
+}
+
+.ce-root *,
+.ce-modal *,
+.ce-menu * {
+    box-sizing: border-box;
+}
+
+.ce-root [hidden],
+.ce-modal [hidden],
+.ce-bubble[hidden] {
+    display: none !important;
+}
+
+.ce-icon {
+    display: inline-flex;
+    flex: none;
+    line-height: 0;
+}
+
+.ce-spacer {
+    flex: 1 1 auto;
+}
+
+.ce-muted {
+    color: var(--ce-muted);
+}
+
+/* ------------------------------------------------------------------ ram editoru */
+
+.ce-root {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--ce-input-border);
+    border-radius: var(--ce-radius);
+    background: var(--ce-bg);
+}
+
+.ce-root:focus-within {
+    border-color: var(--ce-accent);
+    box-shadow: var(--ce-focus);
+}
+
+.ce-root.ce-fullscreen {
+    position: fixed;
+    inset: 12px;
+    z-index: 1050;
+    box-shadow: var(--ce-shadow-lg);
+}
+
+.ce-root.ce-fullscreen .ce-body {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+/* ------------------------------------------------------------------ toolbar */
+
+.ce-toolbar {
+    position: sticky;
+    /* host muze nastavit --ce-sticky-top (napr. pod vlastni lepivou hlavicku stranky) */
+    top: var(--ce-sticky-top, var(--adm-top-h, 0px));
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 4px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--ce-border);
+    border-radius: var(--ce-radius) var(--ce-radius) 0 0;
+    background: var(--ce-bg-2);
+}
+
+.ce-root.ce-fullscreen .ce-toolbar {
+    top: 0;
+}
+
+.ce-group {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding-right: 4px;
+    margin-right: 2px;
+    border-right: 1px solid var(--ce-border);
+}
+
+.ce-group:last-child,
+.ce-spacer + .ce-group {
+    border-right: 0;
+    margin-right: 0;
+    padding-right: 0;
+}
+
+.ce-group-table {
+    padding: 2px 4px 2px 2px;
+    border: 1px solid var(--ce-border-strong);
+    border-radius: var(--ce-radius-sm);
+    background: var(--ce-active-bg);
+}
+
+.ce-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: var(--ce-radius-sm);
+    background: transparent;
+    color: var(--ce-text-2);
+    font: inherit;
+    cursor: pointer;
+}
+
+.ce-btn:hover:not(:disabled) {
+    background: var(--ce-hover);
+    color: var(--ce-text);
+}
+
+.ce-btn.is-active {
+    background: var(--ce-active-bg);
+    color: var(--ce-primary);
+}
+
+.ce-btn:disabled {
+    opacity: .35;
+    cursor: default;
+}
+
+.ce-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--ce-focus);
+}
+
+.ce-btn-caret {
+    padding: 0 4px;
+}
+
+.ce-block-type {
+    min-width: 112px;
+    justify-content: space-between;
+    padding: 0 6px 0 10px;
+    border: 1px solid var(--ce-input-border);
+    background: var(--ce-input-bg);
+    color: var(--ce-text);
+    font-weight: 500;
+}
+
+/* ------------------------------------------------------------------ obsah */
+
+/* obsah ma max. vysku a vlastni posuvnik, vysku jde zmenit tahlem pod nim */
+.ce-body {
+    position: relative;
+    max-height: var(--ce-max-h, 70vh);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.ce-root.ce-fullscreen .ce-body {
+    max-height: none !important;
+    height: auto !important;
+}
+
+.ce-resize {
+    height: 9px;
+    border-top: 1px solid var(--ce-border);
+    background: var(--ce-bg-2);
+    cursor: ns-resize;
+    touch-action: none;
+    position: relative;
+}
+
+.ce-resize::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 3px;
+    width: 36px;
+    height: 3px;
+    margin-left: -18px;
+    border-radius: 3px;
+    background: var(--ce-border-strong);
+}
+
+.ce-resize:hover::after,
+.ce-root.is-resizing .ce-resize::after {
+    background: var(--ce-accent);
+}
+
+.ce-root.is-resizing {
+    user-select: none;
+}
+
+.ce-root.ce-fullscreen .ce-resize {
+    display: none;
+}
+
+.ce-content {
+    min-height: 220px;
+    padding: 18px 28px 24px var(--ce-gutter);
+    outline: none;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+/* typografie administrace - ve vzhledu webu ji nahradi styly webu */
+.ce-typo {
+    color: var(--ce-text);
+    font-size: 15px;
+    line-height: 1.65;
+}
+
+.ce-typo > * + * {
+    margin-top: .75em;
+}
+
+.ce-typo p {
+    margin: 0;
+}
+
+.ce-typo p + p {
+    margin-top: .6em;
+}
+
+.ce-typo h1, .ce-typo h2, .ce-typo h3, .ce-typo h4, .ce-typo h5, .ce-typo h6 {
+    margin: 1.2em 0 .4em;
+    color: var(--ce-text);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.ce-typo > h1:first-child, .ce-typo > h2:first-child, .ce-typo > h3:first-child {
+    margin-top: 0;
+}
+
+.ce-typo h1 { font-size: 30px; }
+.ce-typo h2 { font-size: 24px; }
+.ce-typo h3 { font-size: 20px; }
+.ce-typo h4 { font-size: 17px; }
+.ce-typo h5, .ce-typo h6 { font-size: 15px; }
+
+/* odkazy: vlastni barva - primarni modra administrace je na tmavem pozadi spatne citelna */
+.ce-typo {
+    --ce-link: #1a56c9;
+}
+
+html.theme-dark .ce-root:not(.ce-theme-light) .ce-typo,
+.ce-root.ce-theme-dark .ce-typo {
+    --ce-link: #8ab8ff;
+}
+
+.ce-typo a {
+    color: var(--ce-link);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--ce-link) 55%, transparent);
+    text-underline-offset: 2px;
+}
+
+.ce-typo a:hover {
+    text-decoration-color: currentColor;
+}
+
+.ce-typo ul,
+.ce-typo ol {
+    margin: .4em 0;
+    padding-left: 1.6em;
+}
+
+.ce-typo li + li {
+    margin-top: .2em;
+}
+
+.ce-typo li > p {
+    margin: 0;
+}
+
+.ce-typo blockquote {
+    margin: .8em 0;
+    padding: .2em 0 .2em 1em;
+    border-left: 3px solid var(--ce-accent);
+    color: var(--ce-text-2);
+    font-style: italic;
+}
+
+.ce-typo hr {
+    margin: 1.2em 0;
+    border: 0;
+    border-top: 2px solid var(--ce-border-strong);
+}
+
+.ce-content hr.ProseMirror-selectednode {
+    border-top-color: var(--ce-primary);
+}
+
+.ce-typo pre {
+    padding: 10px 12px;
+    border-radius: var(--ce-radius-sm);
+    background: var(--ce-bg-3);
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+}
+
+.ce-typo code {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: var(--ce-bg-3);
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: .9em;
+}
+
+.ce-typo img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    cursor: default;
+}
+
+.ce-content img.ProseMirror-selectednode {
+    outline: 3px solid var(--ce-primary);
+    outline-offset: 2px;
+}
+
+.ce-typo table {
+    border-collapse: collapse;
+    margin: .8em 0;
+    max-width: 100%;
+    table-layout: fixed;
+}
+
+.ce-typo td,
+.ce-typo th {
+    min-width: 60px;
+    padding: 6px 8px;
+    border: 1px solid var(--ce-border-strong);
+    vertical-align: top;
+    position: relative;
+}
+
+.ce-typo th {
+    background: var(--ce-bg-2);
+    font-weight: 600;
+    text-align: left;
+}
+
+.ce-typo td p,
+.ce-typo th p {
+    margin: 0;
+}
+
+.ce-content img {
+    max-width: 100%;
+    /* jako na webu a ve Wordu: text na radku s obrazkem sedi na spodni hrane
+       (Bootstrap administrace dava middle) */
+    vertical-align: baseline;
+}
+
+/* struktura tabulky pro vyber bunek a zmenu sirky sloupcu - vzdy */
+.ce-content td,
+.ce-content th {
+    position: relative;
+}
+
+/* bunka bez ohraniceni (Vlastnosti bunky) - v editoru aspon vodicka, at je videt struktura */
+.ce-content td[style*="border-style: none"],
+.ce-content th[style*="border-style: none"] {
+    outline: 1px dashed var(--ce-border);
+    outline-offset: -1px;
+}
+
+.ce-content .selectedCell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--ce-active-bg);
+    pointer-events: none;
+}
+
+.ce-content.resize-cursor {
+    cursor: col-resize;
+}
+
+.ce-content .ProseMirror-gapcursor {
+    position: relative;
+    display: none;
+}
+
+.ce-content .ProseMirror-gapcursor::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    display: block;
+    width: 20px;
+    border-top: 1px solid var(--ce-text);
+    animation: ce-blink 1.1s steps(2, start) infinite;
+}
+
+.ce-content.ProseMirror-focused .ProseMirror-gapcursor {
+    display: block;
+}
+
+@keyframes ce-blink {
+    to { visibility: hidden; }
+}
+
+.ce-content .ce-placeholder::before {
+    content: attr(data-placeholder);
+    position: absolute;
+    color: var(--ce-muted);
+    pointer-events: none;
+}
+
+.ProseMirror-hideselection *::selection { background: transparent; }
+.ProseMirror-hideselection { caret-color: transparent; }
+
+/* ------------------------------------------------------------------ specialni bloky */
+
+.ce-nv {
+    position: relative;
+    padding: 8px 10px 10px;
+    border: 1px dashed var(--ce-border-strong);
+    border-radius: var(--ce-radius);
+    background: var(--ce-bg-2);
+    cursor: default;
+    user-select: none;
+    white-space: normal;
+}
+
+.ce-nv.is-selected,
+.ce-nv.ProseMirror-selectednode {
+    border: 1px solid var(--ce-primary);
+    box-shadow: 0 0 0 2px var(--ce-active-bg);
+}
+
+.ce-nv-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    color: var(--ce-muted);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    line-height: 1.3;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.ce-nv-label > span {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: none;
+    font-family: inherit;
+}
+
+.ce-nv-edit {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ce-radius-sm);
+    background: transparent;
+    color: var(--ce-muted);
+    cursor: pointer;
+}
+
+.ce-nv-edit:hover {
+    background: var(--ce-hover);
+    color: var(--ce-primary);
+}
+
+.ce-nv-meta {
+    margin-top: 6px;
+    color: var(--ce-muted);
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.ce-nv-button-row {
+    display: flex;
+    justify-content: center;
+}
+
+.ce-fake-btn {
+    display: inline-block;
+    padding: 10px 26px;
+    border-radius: 999px;
+    background: #f7b529;
+    color: #1a1a1a;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.ce-fake-btn-btn-basic {
+    background: #1d67e7;
+    color: #fff;
+}
+
+.ce-nv-spacer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 22px;
+    padding: 0;
+    border-style: dotted;
+    background: transparent;
+    color: var(--ce-muted);
+    font-size: 11px;
+    line-height: 1;
+}
+
+.ce-nv-video-thumb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    max-width: 420px;
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--ce-radius-sm);
+    background: #111;
+}
+
+.ce-nv-video-thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+}
+
+.ce-nv-play {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(220, 20, 20, .92);
+    color: #fff;
+}
+
+.ce-nv-code {
+    max-height: 180px;
+    margin: 0;
+    overflow: auto;
+    padding: 8px 10px;
+    border-radius: var(--ce-radius-sm);
+    background: var(--ce-bg-3);
+    color: var(--ce-text-2);
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.ce-nv-container {
+    position: relative;
+    padding: 6px 10px 10px;
+    border: 1px dashed var(--ce-border-strong);
+    border-radius: var(--ce-radius);
+}
+
+.ce-nv-container > .ce-nv-label {
+    margin-bottom: 4px;
+}
+
+.ce-nv-container-body > * + * {
+    margin-top: .6em;
+}
+
+/* ------------------------------------------------------------------ uchyt bloku */
+
+.ce-handle {
+    position: absolute;
+    left: 4px;
+    z-index: 3;
+    display: flex;
+    gap: 0;
+}
+
+.ce-handle-btn {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ce-radius-sm);
+    background: transparent;
+    color: var(--ce-muted);
+    cursor: pointer;
+}
+
+.ce-handle-btn:hover {
+    background: var(--ce-hover);
+    color: var(--ce-text);
+}
+
+.ce-handle-grip {
+    cursor: grab;
+}
+
+.ce-handle-grip:active {
+    cursor: grabbing;
+}
+
+.ce-body.is-dragging .ce-handle {
+    display: none;
+}
+
+/* ------------------------------------------------------------------ presun bloku tazenim */
+
+body.ce-body-dragging,
+body.ce-body-dragging * {
+    cursor: grabbing !important;
+    user-select: none !important;
+}
+
+body.ce-body-dragging .ce-bubble {
+    display: none !important;
+}
+
+/* prekryv nad presouvanym blokem (blok "zeslabne") */
+.ce-drag-source {
+    position: absolute;
+    z-index: 4;
+    border: 2px dashed var(--ce-border-strong);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--ce-bg) 72%, transparent);
+    pointer-events: none;
+}
+
+/* ve vzhledu webu je obsah na bilem pozadi */
+.ce-root.is-web .ce-drag-source {
+    background: rgba(255, 255, 255, .72);
+}
+
+.ce-drop-line {
+    position: absolute;
+    z-index: 6;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--ce-accent);
+    box-shadow: 0 0 0 3px var(--ce-active-bg);
+    pointer-events: none;
+    transition: top .08s ease-out;
+}
+
+.ce-drop-line::before,
+.ce-drop-line::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    width: 11px;
+    height: 11px;
+    border: 3px solid var(--ce-accent);
+    border-radius: 50%;
+    background: var(--ce-bg);
+}
+
+.ce-drop-line::before { left: -8px; }
+.ce-drop-line::after { right: -8px; }
+
+/* misto, kde blok uz je - presun nic nezmeni */
+.ce-drop-line.is-same {
+    background: var(--ce-border-strong);
+    box-shadow: none;
+}
+
+.ce-drop-line.is-same::before,
+.ce-drop-line.is-same::after {
+    border-color: var(--ce-border-strong);
+}
+
+.ce-just-moved {
+    animation: ce-moved .9s ease-out;
+    border-radius: 4px;
+}
+
+@keyframes ce-moved {
+    0% { box-shadow: 0 0 0 4px var(--ce-active-bg); background-color: var(--ce-active-bg); }
+    100% { box-shadow: 0 0 0 4px transparent; background-color: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ce-drop-line { transition: none; }
+    .ce-just-moved { animation: none; }
+}
+
+/* ------------------------------------------------------------------ zdroj, stav */
+
+.ce-source {
+    min-height: 260px;
+    /* obarveni HTML - svetle tema */
+    --ce-hl-tag: #1f5fbf;
+    --ce-hl-attr: #8a3ab9;
+    --ce-hl-value: #0f7b3f;
+    --ce-hl-comment: #7a8594;
+    --ce-hl-keyword: #b3261e;
+    --ce-hl-number: #b35c00;
+}
+
+/* tmave tema: administrace v tmavem rezimu (a editor ne svetly) nebo editor tmavy */
+html.theme-dark .ce-root:not(.ce-theme-light) .ce-source,
+/* samostatny editor kodu ma .ce-root i .ce-source na jednom prvku */
+html.theme-dark .ce-source.ce-root:not(.ce-theme-light),
+.ce-root.ce-theme-dark .ce-source {
+    --ce-hl-tag: #7cb8ff;
+    --ce-hl-attr: #d3a4ff;
+    --ce-hl-value: #8ee0a4;
+    --ce-hl-comment: #8b95a3;
+    --ce-hl-keyword: #ff9b93;
+    --ce-hl-number: #ffc27a;
+}
+
+.ce-src {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Samostatny editor kodu (nastaveni webu). Vysku urcuje hostitel a uzivatel si ji
+   muze pretahnout za pravy dolni roh - proto resize + overflow na obalu a vyska
+   do 100 % uvnitr. Vyssi vaha nez .ce-source .cm-editor nize. */
+.ce-source.ce-code-standalone {
+    min-height: var(--ce-code-min, 180px);
+    overflow: hidden;
+    resize: vertical;
+}
+
+.ce-source.ce-code-standalone .ce-src {
+    height: 100%;
+}
+
+.ce-source.ce-code-standalone .ce-src-cm {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.ce-source.ce-code-standalone .cm-editor {
+    height: 100%;
+    min-height: var(--ce-code-min, 180px);
+}
+
+.ce-source.ce-code-standalone .cm-scroller {
+    overflow: auto;
+}
+
+.ce-src-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 8px;
+    border-bottom: 1px solid var(--ce-border);
+    background: var(--ce-bg-2);
+}
+
+.ce-src-bar .ce-btn-text {
+    gap: 5px;
+    height: 26px;
+    padding: 0 8px;
+    font-size: 12px;
+}
+
+.ce-src-hint {
+    margin-left: auto;
+    color: var(--ce-muted);
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ce-source .cm-editor {
+    min-height: 260px;
+    font-size: 13px;
+    background: var(--ce-bg);
+    color: var(--ce-text);
+}
+
+.ce-source-dialog {
+    min-height: 0;
+    border: 1px solid var(--ce-input-border);
+    border-radius: var(--ce-radius-sm);
+    overflow: hidden;
+}
+
+.ce-source-dialog .cm-editor {
+    min-height: 280px;
+    max-height: 60vh;
+}
+
+.ce-source-dialog .cm-scroller {
+    overflow: auto;
+}
+
+.ce-source .cm-editor.cm-focused {
+    outline: none;
+}
+
+.ce-source .cm-gutters {
+    border-right: 1px solid var(--ce-border);
+    background: var(--ce-bg-2);
+    color: var(--ce-muted);
+}
+
+.ce-source .cm-activeLine,
+.ce-source .cm-activeLineGutter {
+    background: var(--ce-hover);
+}
+
+.ce-source .cm-content {
+    font-family: ui-monospace, Consolas, monospace;
+    caret-color: var(--ce-text);
+}
+
+/* kurzor kresli CodeMirror sam (drawSelection) - vychozi je cerny, v tmavem tematu neviditelny */
+.ce-source .cm-cursor,
+.ce-source .cm-dropCursor {
+    border-left: 2px solid var(--ce-primary);
+}
+
+.ce-source .cm-selectionBackground,
+.ce-source .cm-focused .cm-selectionBackground,
+.ce-source .cm-content ::selection {
+    background: var(--ce-active-bg) !important;
+}
+
+.ce-source .cm-focused .cm-selectionBackground {
+    background: color-mix(in srgb, var(--ce-primary) 28%, transparent) !important;
+}
+
+.ce-source .cm-selectionMatch {
+    background: color-mix(in srgb, var(--ce-accent) 22%, transparent);
+}
+
+.ce-source .cm-matchingBracket,
+.ce-source .cm-focused .cm-matchingBracket {
+    background: color-mix(in srgb, var(--ce-accent) 28%, transparent);
+    outline: 1px solid color-mix(in srgb, var(--ce-accent) 55%, transparent);
+}
+
+.ce-source .cm-foldGutter .cm-gutterElement {
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.ce-source .cm-foldPlaceholder {
+    border: 1px solid var(--ce-border-strong);
+    background: var(--ce-bg-3);
+    color: var(--ce-muted);
+}
+
+/* napoveda a hledani */
+.ce-source .cm-tooltip {
+    border: 1px solid var(--ce-border);
+    border-radius: var(--ce-radius-sm);
+    background: var(--ce-raised);
+    color: var(--ce-text);
+    box-shadow: var(--ce-shadow-lg);
+}
+
+.ce-source .cm-tooltip-autocomplete > ul {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 12.5px;
+}
+
+.ce-source .cm-tooltip-autocomplete > ul > li[aria-selected] {
+    background: var(--ce-primary);
+    color: var(--ce-on-primary);
+}
+
+.ce-source .cm-panels {
+    border-color: var(--ce-border);
+    background: var(--ce-bg-2);
+    color: var(--ce-text);
+}
+
+.ce-source .cm-panel.cm-search input,
+.ce-source .cm-panel.cm-search button {
+    border: 1px solid var(--ce-input-border);
+    border-radius: 4px;
+    background: var(--ce-input-bg);
+    color: var(--ce-text);
+    font: inherit;
+    font-size: 12px;
+}
+
+.ce-source .cm-searchMatch {
+    background: color-mix(in srgb, #ffcc00 35%, transparent);
+    outline: 1px solid color-mix(in srgb, #ffcc00 70%, transparent);
+}
+
+.ce-source .cm-searchMatch-selected {
+    background: color-mix(in srgb, #ff9900 50%, transparent);
+}
+
+.ce-status {
+    padding: 5px 12px;
+    border-top: 1px solid var(--ce-border);
+    border-radius: 0 0 var(--ce-radius) var(--ce-radius);
+    background: var(--ce-bg-2);
+    color: var(--ce-muted);
+    font-size: 11.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ce-status.is-busy {
+    color: var(--ce-primary);
+}
+
+/* docasna zprava (napr. vycisteny text z Wordu) - cela, i na vic radku */
+.ce-status.is-note {
+    color: var(--ce-text-2);
+    background: var(--ce-active-bg);
+    white-space: normal;
+}
+
+/* ------------------------------------------------------------------ bublina, menu */
+
+.ce-bubble {
+    position: fixed;
+    z-index: 1060;
+    display: flex;
+    gap: 1px;
+    padding: 3px;
+    border: 1px solid var(--ce-border);
+    border-radius: var(--ce-radius);
+    background: var(--ce-raised);
+    box-shadow: var(--ce-shadow-lg);
+}
+
+/* bublina / panel odkazu uvnitr posuvne casti editoru: posouva se s textem, editor ho orizne
+   a lista nastroju (z-index 5) i lepive prvky stranky ho prekryji */
+.ce-bubble.ce-bubble-inside {
+    position: absolute;
+    z-index: 4;
+    width: max-content;
+}
+
+/* ------------------------------------------------------------------ kontextova lista tabulky */
+
+.ce-tabletools {
+    align-items: center;
+    gap: 2px;
+}
+
+.ce-tabletools .ce-btn-caret {
+    gap: 1px;
+    padding-right: 4px;
+}
+
+.ce-btn.ce-btn-danger:hover:not(:disabled) {
+    color: var(--ce-danger, #d0312d);
+}
+
+/* uchyt (oznacit celou tabulku) */
+.ce-table-handle {
+    position: absolute;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: var(--ce-primary);
+    color: #fff;
+    cursor: pointer;
+    opacity: .75;
+}
+
+.ce-table-handle:hover,
+.ce-table-handle.is-active {
+    opacity: 1;
+}
+
+.ce-content table.ProseMirror-selectednode {
+    outline: 2px solid var(--ce-primary);
+    outline-offset: 2px;
+}
+
+/* prepinac moznosti v dialogu (zarovnani, ohraniceni) */
+.ce-seg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    border: 1px solid var(--ce-input-border);
+    border-radius: var(--ce-radius);
+    overflow: hidden;
+}
+
+.ce-seg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 32px;
+    padding: 4px 10px;
+    border: 0;
+    border-right: 1px solid var(--ce-border);
+    background: var(--ce-input-bg);
+    color: var(--ce-text-2);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.ce-seg-btn:last-child {
+    border-right: 0;
+}
+
+.ce-seg-btn:hover {
+    background: var(--ce-hover);
+}
+
+.ce-seg-btn.is-active {
+    background: var(--ce-active-bg);
+    color: var(--ce-primary);
+    font-weight: 600;
+}
+
+.ce-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ce-text-2);
+}
+
+.ce-modal-tprops .ce-swatches {
+    flex-wrap: wrap;
+}
+
+.ce-menu {
+    position: fixed;
+    z-index: 1070;
+    min-width: 210px;
+    max-height: 70vh;
+    overflow: auto;
+    padding: 4px;
+    border: 1px solid var(--ce-border);
+    border-radius: var(--ce-radius);
+    background: var(--ce-raised);
+    box-shadow: var(--ce-shadow-lg);
+}
+
+.ce-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 32px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: var(--ce-radius-sm);
+    background: none;
+    color: var(--ce-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ce-menu-item .ce-icon {
+    width: 16px;
+    color: var(--ce-muted);
+}
+
+.ce-menu-item:hover:not(:disabled),
+.ce-menu-item:focus {
+    outline: none;
+    background: var(--ce-hover);
+}
+
+.ce-menu-item.is-active {
+    background: var(--ce-active-bg);
+    font-weight: 600;
+}
+
+.ce-menu-item.is-active .ce-icon {
+    color: var(--ce-primary);
+}
+
+.ce-menu-item.is-danger,
+.ce-menu-item.is-danger .ce-icon {
+    color: var(--ce-danger);
+}
+
+.ce-menu-item:disabled {
+    opacity: .4;
+    cursor: default;
+}
+
+.ce-menu-hint {
+    margin-left: auto;
+    color: var(--ce-muted);
+    font-size: 11px;
+}
+
+.ce-menu-sep {
+    height: 1px;
+    margin: 4px 6px;
+    background: var(--ce-border);
+}
+
+.ce-menu-title {
+    padding: 6px 10px 2px;
+    color: var(--ce-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ dialogy */
+
+.ce-modal {
+    /* dialog-polyfill.css v administraci nastavuje <dialog> position: absolute */
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    height: fit-content;
+    width: min(480px, calc(100vw - 32px));
+    max-width: none;
+    max-height: calc(100vh - 48px);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ce-radius-lg);
+    background: var(--ce-bg);
+    color: var(--ce-text-2);
+    box-shadow: var(--ce-shadow-lg);
+}
+
+.ce-modal[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.ce-modal::backdrop {
+    background: rgba(15, 23, 42, .45);
+    backdrop-filter: blur(2px);
+}
+
+.ce-modal-image {
+    width: min(620px, calc(100vw - 32px));
+}
+
+.ce-modal-wide {
+    width: min(860px, calc(100vw - 32px));
+}
+
+.ce-modal-head {
+    display: flex;
+    align-items: center;
+    padding: 14px 10px 8px 18px;
+}
+
+.ce-modal-head h3 {
+    flex: 1 1 auto;
+    margin: 0;
+    color: var(--ce-text);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.ce-modal-body {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 4px 18px 14px;
+}
+
+.ce-modal-body p {
+    margin: 0 0 10px;
+}
+
+.ce-modal-foot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--ce-border);
+}
+
+.ce-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.ce-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.ce-field-label {
+    color: var(--ce-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.ce-field-hint {
+    color: var(--ce-muted);
+    font-size: 11.5px;
+}
+
+.ce-input {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--ce-input-border);
+    border-radius: var(--ce-radius-sm);
+    background: var(--ce-input-bg);
+    color: var(--ce-text);
+    font: inherit;
+    font-size: 13px;
+}
+
+.ce-input:focus {
+    outline: none;
+    border-color: var(--ce-accent);
+    box-shadow: var(--ce-focus);
+}
+
+.ce-select {
+    cursor: pointer;
+}
+
+.ce-code {
+    height: auto;
+    min-height: 280px;
+    padding: 10px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.ce-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 2px 0 12px;
+    color: var(--ce-text);
+    cursor: pointer;
+}
+
+.ce-check input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--ce-primary);
+}
+
+.ce-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.ce-row > * {
+    flex: 1 1 0;
+}
+
+.ce-row > .ce-tbtn {
+    flex: none;
+    margin-bottom: 12px;
+}
+
+.ce-row-bottom .ce-check {
+    flex: 2 1 0;
+    margin-bottom: 20px;
+}
+
+.ce-w-160 {
+    flex: 0 0 160px !important;
+}
+
+.ce-grow {
+    flex: 1 1 auto;
+}
+
+.ce-error {
+    padding: 8px 10px;
+    border-radius: var(--ce-radius-sm);
+    background: var(--ce-danger-soft);
+    color: var(--ce-danger);
+    font-size: 12.5px;
+}
+
+.ce-img-preview {
+    display: grid;
+    place-items: center;
+    height: 180px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    border-radius: var(--ce-radius);
+    background-color: var(--ce-bg-3);
+    background-image: conic-gradient(var(--ce-chip) 25%, transparent 0 50%, var(--ce-chip) 0 75%, transparent 0);
+    background-size: 16px 16px;
+}
+
+.ce-img-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.ce-video-preview {
+    aspect-ratio: 16 / 9;
+    height: auto;
+    background: #111;
+}
+
+.ce-tbtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 14px;
+    border: 1px solid var(--ce-input-border);
+    border-radius: var(--ce-radius-sm);
+    background: var(--adm-btn2-bg, #fff);
+    color: var(--ce-text);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ce-tbtn:hover {
+    background: var(--adm-btn2-hover, #f4f5f7);
+}
+
+.ce-tbtn-primary {
+    border-color: var(--ce-primary);
+    background: var(--ce-primary);
+    color: var(--ce-on-primary);
+}
+
+.ce-tbtn-primary:hover {
+    background: var(--ce-primary-hover);
+}
+
+.ce-tbtn-danger {
+    color: var(--ce-danger);
+}
+
+.ce-tbtn-danger:hover {
+    background: var(--ce-danger-soft);
+    border-color: var(--ce-danger);
+}
+
+/* ------------------------------------------------------------------ vlastni tema editoru */
+
+.ce-root.ce-theme-light,
+.ce-theme-light .ce-modal,
+.ce-theme-light.ce-bubble,
+.ce-theme-light.ce-menu {
+    --ce-bg: #ffffff;
+    --ce-bg-2: #f8f9fa;
+    --ce-bg-3: #eef0f3;
+    --ce-raised: #ffffff;
+    --ce-border: rgba(15, 23, 42, .09);
+    --ce-border-strong: rgba(15, 23, 42, .16);
+    --ce-input-border: rgba(15, 23, 42, .22);
+    --ce-input-bg: #ffffff;
+    --ce-text: rgba(0, 0, 0, .87);
+    --ce-text-2: rgba(0, 0, 0, .64);
+    --ce-muted: rgba(0, 0, 0, .5);
+    --ce-hover: rgba(15, 23, 42, .05);
+    --ce-chip: rgba(15, 23, 42, .07);
+    --ce-accent: #00a2e8;
+    --ce-active-bg: rgba(0, 162, 232, .1);
+    --ce-primary: #1d67e7;
+    --ce-danger: #c9302c;
+    color-scheme: light;
+}
+
+.ce-root.ce-theme-dark,
+.ce-theme-dark .ce-modal,
+.ce-theme-dark.ce-bubble,
+.ce-theme-dark.ce-menu {
+    --ce-bg: #212121;
+    --ce-bg-2: #262626;
+    --ce-bg-3: #2e2e2e;
+    --ce-raised: #2a2a2a;
+    --ce-border: rgba(255, 255, 255, .08);
+    --ce-border-strong: rgba(255, 255, 255, .16);
+    --ce-input-border: rgba(255, 255, 255, .22);
+    --ce-input-bg: #424242;
+    --ce-text: rgba(255, 255, 255, .92);
+    --ce-text-2: rgba(255, 255, 255, .72);
+    --ce-muted: rgba(255, 255, 255, .54);
+    --ce-hover: rgba(255, 255, 255, .06);
+    --ce-chip: rgba(255, 255, 255, .1);
+    --ce-accent: #3dbdf5;
+    --ce-active-bg: rgba(61, 189, 245, .14);
+    --ce-primary: #3d86f5;
+    --ce-danger: #ff7b76;
+    color-scheme: dark;
+}
+
+.ce-theme-light .ce-tbtn:not(.ce-tbtn-primary) { background: #fff; }
+.ce-theme-dark .ce-tbtn:not(.ce-tbtn-primary) { background: #2d2d2d; }
+
+/* ------------------------------------------------------------------ vzhled webu */
+
+.ce-frame.is-web {
+    margin: 0 auto;
+    min-height: 100%;
+    /* obsah webu je na svetlem pozadi bez ohledu na tema administrace */
+    color-scheme: light;
+}
+
+/* vychozi hodnoty s nulovou specificitou - pravidla body webu (.ce-web) maji prednost */
+:where(.ce-frame.is-web) {
+    background: #fff;
+    color: #000;
+    font-size: 16px;
+    line-height: normal;
+    text-align: left;
+}
+
+.ce-root.is-web .ce-body {
+    background: var(--ce-bg-3);
+}
+
+.ce-root.is-web-loading .ce-body {
+    opacity: .6;
+    transition: opacity .2s;
+}
+
+/* bloky editoru ve vzhledu webu: styly webu se jich nesmi dotknout */
+.ce-frame.is-web .ce-nv,
+.ce-frame.is-web .ce-nv-container > .ce-nv-label,
+.ce-frame.is-web .ce-var {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--ce-text-2);
+    text-transform: none;
+}
+
+/* ------------------------------------------------------------------ promenne {$...} */
+
+.ce-var {
+    display: inline;
+    white-space: normal;
+    user-select: none;
+    cursor: default;
+}
+
+.ce-var-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    padding: 0 7px 0 5px;
+    border: 1px solid rgba(123, 63, 184, .35);
+    border-radius: 999px;
+    background: rgba(123, 63, 184, .1);
+    color: #6a2fa6;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: .82em;
+    font-weight: 600;
+    font-style: normal;
+    line-height: 1.6;
+    vertical-align: baseline;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ce-var-value {
+    overflow: hidden;
+    max-width: 22ch;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: rgba(123, 63, 184, .14);
+    font-family: ui-monospace, Consolas, monospace;
+    font-weight: 500;
+    text-overflow: ellipsis;
+}
+
+.ce-var.is-unknown .ce-var-chip {
+    border-color: rgba(201, 48, 44, .45);
+    background: var(--ce-danger-soft);
+    color: var(--ce-danger);
+    font-family: ui-monospace, Consolas, monospace;
+    font-weight: 500;
+}
+
+.ce-var.is-selected .ce-var-chip,
+.ce-var.ProseMirror-selectednode .ce-var-chip {
+    outline: 2px solid var(--ce-primary);
+    outline-offset: 1px;
+}
+
+html.theme-dark .ce-root:not(.ce-theme-light) .ce-frame:not(.is-web) .ce-var-chip,
+.ce-root.ce-theme-dark .ce-frame:not(.is-web) .ce-var-chip {
+    border-color: rgba(190, 150, 240, .45);
+    background: rgba(190, 150, 240, .14);
+    color: #d6b8ff;
+}
+
+/* nahled jak na webu: blok na celou sirku s popiskem */
+.ce-var.is-preview {
+    display: inline-block;
+    width: 100%;
+    margin: 4px 0;
+    padding: 4px;
+    border: 1px dashed rgba(123, 63, 184, .45);
+    border-radius: var(--ce-radius);
+    vertical-align: top;
+}
+
+.ce-var.is-preview.is-selected,
+.ce-var.is-preview.ProseMirror-selectednode {
+    border-style: solid;
+    border-color: var(--ce-primary);
+}
+
+.ce-var.is-preview .ce-var-chip {
+    margin-bottom: 4px;
+}
+
+.ce-var-frame {
+    display: block;
+}
+
+.ce-var-shadow {
+    display: block;
+}
+
+.ce-var-note {
+    display: block;
+    padding: 10px;
+    color: var(--ce-muted);
+    font-size: 12.5px;
+}
+
+.ce-var-note.is-error {
+    color: var(--ce-danger);
+}
+
+.ce-var-frame.is-loading .ce-var-note {
+    animation: ce-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ce-pulse {
+    50% { opacity: .45; }
+}
+
+.ce-var-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ce-text);
+}
+
+.ce-var-code {
+    display: block;
+    padding: 6px 8px;
+    border-radius: var(--ce-radius-sm);
+    background: var(--ce-bg-3);
+    color: var(--ce-text);
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 12.5px;
+    word-break: break-all;
+}
+
+/* ------------------------------------------------------------------ barvy */
+
+.ce-palette {
+    min-width: 0;
+    padding: 6px 8px 8px;
+}
+
+.ce-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 2px 6px;
+}
+
+.ce-swatch {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--ce-border-strong);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.ce-swatch:hover {
+    transform: scale(1.08);
+}
+
+.ce-swatch.is-active {
+    box-shadow: 0 0 0 2px var(--ce-raised), 0 0 0 4px var(--ce-primary);
+}
+
+.ce-swatch-none {
+    background: linear-gradient(135deg, transparent 45%, var(--ce-danger) 45%, var(--ce-danger) 55%, transparent 55%), var(--ce-bg);
+}
+
+.ce-swatch-custom {
+    width: 28px;
+    height: 26px;
+    padding: 0 2px;
+    border: 1px solid var(--ce-border-strong);
+    border-radius: 6px;
+    background: var(--ce-bg);
+    cursor: pointer;
+}
+
+.ce-menu-label {
+    flex: 1 1 auto;
+}
+
+/* ------------------------------------------------------------------ tabulka - vlozeni */
+
+.ce-modal-table {
+    width: min(720px, calc(100vw - 32px));
+}
+
+.ce-table-insert {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 22px;
+}
+
+.ce-table-pick {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ce-table-opts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ce-grid {
+    display: grid;
+    gap: 3px;
+    width: max-content;
+}
+
+.ce-grid-cell {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid var(--ce-border-strong);
+    border-radius: 3px;
+    background: var(--ce-bg);
+    cursor: pointer;
+}
+
+.ce-grid-cell.is-on {
+    border-color: var(--ce-primary);
+    background: var(--ce-active-bg);
+}
+
+/* zvolena velikost (mys mimo mrizku) - plnejsi nez nahled pri najeti */
+.ce-grid-cell.is-on:not(.is-hover) {
+    background: color-mix(in srgb, var(--ce-primary) 35%, transparent);
+}
+
+/* rychla nabidka tabulky z toolbaru */
+.ce-table-popover {
+    min-width: 0;
+    padding: 4px 10px 6px;
+}
+
+.ce-table-popover .ce-grid {
+    margin: 4px 2px 6px;
+}
+
+.ce-table-popover .ce-grid-cell {
+    width: 18px;
+    height: 18px;
+}
+
+.ce-table-popover .ce-grid-size {
+    margin-bottom: 2px;
+    font-size: 12.5px;
+}
+
+.ce-table-popover .ce-menu-title {
+    padding-left: 2px;
+}
+
+.ce-table-more {
+    margin-top: 2px;
+}
+
+.ce-grid-cell:focus-visible {
+    outline: 2px solid var(--ce-primary);
+}
+
+.ce-grid-size {
+    color: var(--ce-text);
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .ce-table-insert {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ------------------------------------------------------------------ nahled */
+
+.ce-modal-preview {
+    width: calc(100vw - 32px);
+    max-width: 1400px;
+    height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+}
+
+.ce-modal-preview[open] {
+    display: flex;
+}
+
+.ce-modal-preview .ce-modal-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    max-height: none;
+    overflow: hidden;
+}
+
+.ce-preview-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+}
+
+.ce-preview-bar .ce-btn-text {
+    gap: 6px;
+    padding: 0 10px;
+}
+
+.ce-preview-bar .ce-muted {
+    font-size: 12px;
+}
+
+.ce-preview-stage {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    min-height: 0;
+    overflow: auto;
+    border-radius: var(--ce-radius);
+    background: var(--ce-bg-3);
+}
+
+.ce-preview-frame {
+    flex: none;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--ce-border);
+    transition: width .2s;
+}
+
+.ce-preview-loading {
+    align-self: center;
+    color: var(--ce-muted);
+}
+
+/* ------------------------------------------------------------------ sloupce (cms-cols) */
+
+/* rozlozeni stejne jako styly webu (global/pages: .cms-cols); nulova specificita -
+   ve vzhledu webu maji prednost styly webu */
+:where(.ce-content) .cms-cols {
+    display: grid;
+    grid-template-columns: var(--cms-cols, 1fr 1fr);
+    gap: 30px;
+    align-items: start;
+}
+
+:where(.ce-content) .cms-cols-3 { --cms-cols: repeat(3, minmax(0, 1fr)); }
+:where(.ce-content) .cms-cols-4 { --cms-cols: repeat(4, minmax(0, 1fr)); }
+:where(.ce-content) .cms-cols-1-2 { --cms-cols: minmax(0, 1fr) minmax(0, 2fr); }
+:where(.ce-content) .cms-cols-2-1 { --cms-cols: minmax(0, 2fr) minmax(0, 1fr); }
+:where(.ce-content) .cms-gap-0 { gap: 0; }
+:where(.ce-content) .cms-gap-s { gap: 15px; }
+:where(.ce-content) .cms-gap-l { gap: 50px; }
+:where(.ce-content) .cms-va-center { align-items: center; }
+:where(.ce-content) .cms-va-end { align-items: end; }
+:where(.ce-content) .cms-va-stretch { align-items: stretch; }
+
+.ce-content .cms-col {
+    min-width: 0;
+}
+
+.ce-content .cms-col > :first-child { margin-top: 0; }
+.ce-content .cms-col > :last-child { margin-bottom: 0; }
+
+/* obal v editoru: popisek nahore, sloupce s carkovanym okrajem (jen v editoru) */
+.ce-nv-columns {
+    position: relative;
+    padding: 6px 8px 10px;
+    border: 1px dashed var(--ce-border-strong);
+    border-radius: var(--ce-radius);
+}
+
+.ce-nv-columns.ProseMirror-selectednode {
+    border: 1px solid var(--ce-primary);
+    box-shadow: 0 0 0 2px var(--ce-active-bg);
+}
+
+.ce-nv-columns > .ce-nv-label {
+    margin-bottom: 8px;
+}
+
+.ce-nv-columns .cms-col {
+    padding: 6px 8px;
+    outline: 1px dashed var(--ce-border);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.ce-nv-columns .cms-col:focus-within {
+    outline-color: var(--ce-accent);
+}
+
+/* dialog: rozvrzeni jako obrazky */
+.ce-modal-columns {
+    width: min(620px, calc(100vw - 32px));
+}
+
+.ce-layouts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px;
+}
+
+.ce-layout-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 8px 8px;
+    border: 1px solid var(--ce-input-border);
+    border-radius: var(--ce-radius);
+    background: var(--ce-input-bg);
+    color: var(--ce-text-2);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.ce-layout-card:hover {
+    border-color: var(--ce-accent);
+}
+
+.ce-layout-card.is-active {
+    border-color: var(--ce-primary);
+    background: var(--ce-active-bg);
+    color: var(--ce-primary);
+    box-shadow: 0 0 0 1px var(--ce-primary);
+}
+
+.ce-layout-icon {
+    display: flex;
+    gap: 3px;
+    width: 64px;
+    height: 30px;
+}
+
+.ce-layout-icon > span {
+    flex-basis: 0;
+    border-radius: 3px;
+    background: var(--ce-border-strong);
+}
+
+.ce-layout-card.is-active .ce-layout-icon > span,
+.ce-layout-preview > span {
+    background: var(--ce-primary);
+    opacity: .75;
+}
+
+.ce-layout-preview {
+    width: 100%;
+    max-width: 320px;
+    height: 34px;
+}
+
+.ce-layout-custom {
+    padding: 10px 12px;
+    border: 1px solid var(--ce-border);
+    border-radius: var(--ce-radius);
+    background: var(--ce-bg-2);
+}
+
+.ce-widths .ce-field {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* ------------------------------------------------------------------ napoveda promennych ({$) */
+
+.ce-btn-label {
+    margin-left: 3px;
+    font-size: 12.5px;
+    font-weight: 500;
+}
+
+.ce-suggest {
+    max-height: min(340px, 50vh);
+    min-width: 260px;
+}
+
+a.ce-menu-item {
+    color: inherit;
+    text-decoration: none;
+}
+
+.ce-suggest-hint {
+    padding: 6px 10px 2px;
+    border-top: 1px solid var(--ce-border);
+    margin-top: 4px;
+    color: var(--ce-muted);
+    font-size: 11px;
+}
+
+/* zdroj: parovy tag (oteviraci i uzaviraci) a zprava v liste */
+.ce-source .cm-tagMatch {
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--ce-accent) 20%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ce-accent) 50%, transparent);
+}
+
+.ce-source .cm-tagNoMatch {
+    border-radius: 3px;
+    background: var(--ce-danger-soft);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ce-danger) 45%, transparent);
+}
+
+.ce-src-hint.is-flash {
+    color: var(--ce-primary);
+    font-weight: 500;
+    white-space: normal;
+}
+
+/* ------------------------------------------------------------------ odkaz pod kurzorem */
+
+/* cely odkaz, ve kterem je kurzor */
+.ce-content .ce-link-active {
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--ce-link, var(--ce-primary)) 14%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ce-link, var(--ce-primary)) 30%, transparent);
+}
+
+/* panel pod odkazem (zaklad = .ce-bubble) */
+.ce-linkpop {
+    align-items: center;
+    gap: 4px;
+    max-width: min(520px, calc(100% - 8px));
+    padding: 3px 4px 3px 10px;
+    color: var(--ce-text-2);
+    font-size: 12.5px;
+}
+
+.ce-linkpop:not([hidden]) {
+    display: flex;
+}
+
+.ce-linkpop-url {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0 2px;
+    color: var(--ce-accent);
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ce-linkpop-url:hover {
+    text-decoration: underline;
+}
+
+.ce-linkpop-badge {
+    flex: none;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--ce-chip);
+    color: var(--ce-muted);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.ce-linkpop-sep {
+    flex: none;
+    width: 1px;
+    height: 20px;
+    margin: 0 2px 0 4px;
+    background: var(--ce-border);
+}

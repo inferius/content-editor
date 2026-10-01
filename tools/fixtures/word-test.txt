@@ -1,0 +1,52 @@
+Testovací dokument pro vkládání
+Podtitul dokumentu
+1. Formátování textu
+Běžný text s tučným, kurzívou, podtržením, přeškrtnutím, m2 a H2O.
+Barvy: tmavě červená, modrá, zelená, oranžová, šedá, zvýrazněná žlutě, tučná červená.
+Písmo: Times New Roman 14, VELKÁ PÍSMENA STYLEM, KAPITÁLKY, konec.
+Falešný nadpis (tučně 16 pt, bez stylu)
+Odkaz na web myTimi a e-mail info@mytimi.cz.
+Znaky: „české uvozovky“, ‚jednoduché‘, pomlčka – a —, výpustka…, nezlomitelná mezera, ×, ©, €, 10 %.
+Řádek před zalomením
+řádek po zalomení (Shift+Enter).
+Poznámka pod čarou v textu.
+Text s komentářem.
+2. Odstavce
+Zarovnáno na střed.
+Zarovnáno vpravo.
+Zarovnáno do bloku - delší text, aby bylo zarovnání vidět na více řádcích. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Odsazeno zleva o 2 cm.
+Odsazený první řádek odstavce, pokračování textu na další řádky, aby bylo odsazení vidět.
+
+
+Po dvou prázdných odstavcích.
+Citát ve stylu Citace.
+Výrazný citát.
+2.1 Seznamy
+•	Odrážka 1
+•	Odrážka 2 s tučným textem
+•	Vnořená 2.1
+•	Vnořená 2.1.1
+•	Odrážka 3
+Text mezi seznamy.
+1.	Číslovaná 1
+2.	Číslovaná 2
+3.	Vnořená a
+4.	Vnořená b
+5.	Číslovaná 3
+2.2 Tabulka
+Služba	Cena	Poznámka
+Konzultace	1 500 Kč	za hodinu
+Audit	12 000 Kč	jednorázově
+Celkem	13 500 Kč
+ 
+3. Obrázky
+Jana Nováková		 
+Petra Svobodová			 
+Eva Dvořáková				 
+  Ikona na středu s textem
+Obtékaný obrázek vpravo: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.
+Odstavec s textovým polem.
+4. Revize
+Vložený text v revizi.
+Konec dokumentu.
