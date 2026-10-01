@@ -748,6 +748,8 @@ body.ce-body-dragging .ce-bubble {
     --ce-hl-comment: #7a8594;
     --ce-hl-keyword: #b3261e;
     --ce-hl-number: #b35c00;
+    --ce-hl-cursor: #1f2937;
+    --ce-hl-selection: color-mix(in srgb, var(--ce-primary) 28%, transparent);
 }
 
 /* tmave tema: administrace v tmavem rezimu (a editor ne svetly) nebo editor tmavy */
@@ -761,6 +763,9 @@ html.theme-dark .ce-source.ce-root:not(.ce-theme-light),
     --ce-hl-comment: #8b95a3;
     --ce-hl-keyword: #ff9b93;
     --ce-hl-number: #ffc27a;
+    /* kurzor svetly, vyber vyrazny (jako tmave tema VS Code) - modra s pruhlednosti na tmavem zanikala */
+    --ce-hl-cursor: #e8eaed;
+    --ce-hl-selection: #264f78;
 }
 
 .ce-src {
@@ -866,7 +871,7 @@ html.theme-dark .ce-source.ce-root:not(.ce-theme-light),
 /* kurzor kresli CodeMirror sam (drawSelection) - vychozi je cerny, v tmavem tematu neviditelny */
 .ce-source .cm-cursor,
 .ce-source .cm-dropCursor {
-    border-left: 2px solid var(--ce-primary);
+    border-left: 2px solid var(--ce-hl-cursor, var(--ce-primary));
 }
 
 .ce-source .cm-selectionBackground,
@@ -876,7 +881,7 @@ html.theme-dark .ce-source.ce-root:not(.ce-theme-light),
 }
 
 .ce-source .cm-focused .cm-selectionBackground {
-    background: color-mix(in srgb, var(--ce-primary) 28%, transparent) !important;
+    background: var(--ce-hl-selection) !important;
 }
 
 .ce-source .cm-selectionMatch {

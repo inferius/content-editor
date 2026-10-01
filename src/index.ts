@@ -21,6 +21,9 @@ export { sanitizePreview } from "./editor/web";
 
 /** HTML editor (napr. sablona kodu do textu). Ctrl+Mezera napoveda, Ctrl+F hledani. */
 export function sourceEditor(element: HTMLElement, html: string, opts: SourceOptions = {}): SourceEditor {
+    // samostatne pouziti (mimo editor obsahu): barvy, kurzor a vyber berou promenne z .ce-root
+    // (bez nich byl kurzor i oznaceni neviditelne a obarveni jen ve svetlem tematu)
+    if (!element.closest(".ce-root")) element.classList.add("ce-root", "ce-source");
     return new SourceEditor(element, html, opts);
 }
 
