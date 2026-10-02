@@ -94,16 +94,20 @@ function watchHeight(host: HTMLElement, options: CodeEditorOptions): () => void 
     const report = options.onResize;
     if (!report || typeof ResizeObserver === "undefined") return () => { /* nic k uklizeni */ };
 
-    let last = Math.round(host.offsetHeight);
+    // Pretazeni za uchyt (CSS resize) zapise vysku primo do stylu prvku. Bez nej
+    // editor roste s obsahem, meni se se sirkou okna nebo pri rozbaleni sekce -
+    // to se hlasit nema, jinak by se ulozila vyska, kterou nikdo nenastavil.
+    let last = host.style.height;
     let timer = 0;
     const obs = new ResizeObserver(() => {
         window.clearTimeout(timer);
         timer = window.setTimeout(() => {
-            const now = Math.round(host.offsetHeight);
-            // hlasit jen skutecne pretazeni, ne prepocet rozlozeni o par pixelu
-            if (Math.abs(now - last) < 8) return;
-            last = now;
-            report(now);
+            const inline = host.style.height;
+            if (!inline || inline === last) return;
+            const px = Math.round(parseFloat(inline));
+            if (!(px > 0)) return;
+            last = inline;
+            report(px);
         }, 400);
     });
     obs.observe(host);
