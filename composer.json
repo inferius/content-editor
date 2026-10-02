@@ -1,0 +1,13 @@
+{
+  "name": "michalosoft/content-editor",
+  "description": "Blokovy WYSIWYG editor obsahu nad ProseMirror (nahrada CKEditoru). Vystup = ciste HTML. Sestaveny dist/ je soucasti repozitare, cilovy projekt nepotrebuje Node.",
+  "type": "library",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Michal Diviš",
+      "email": "michalosoft@gmail.com"
+    }
+  ],
+  "require": {}
+}

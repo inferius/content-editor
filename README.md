@@ -127,3 +127,24 @@ Nový typ bloku se přidá takto:
 1. uzel v `src/core/schema.ts` (`parseDOM` a `toDOM`),
 2. volitelně zobrazení v `nodeviews.ts`, dialog v `dialogs.ts` a položka v toolbaru nebo v menu u `+`,
 3. spustit test tam a zpět.
+
+## Použití v projektu (composer)
+
+Balíček je samostatný repozitář `inferius/content-editor` (composer `michalosoft/content-editor`), vyčleněný z mytimi2. Sestavený `dist/` je v repozitáři, cílový projekt Node nepotřebuje.
+
+```json
+"repositories": [{ "type": "vcs", "url": "https://github.com/inferius/content-editor.git", "no-api": true }],
+"require": { "michalosoft/content-editor": "^0.1" }
+```
+
+`vendor/` není veřejný, proto si projekt `dist/` zkopíruje do veřejné složky (v mytimi2 `packages/content-editor/dist`, skript `tools/publish_packages.php` po `composer install/update`).
+
+Vývoj: změny se dělají tady, `npm run build`, commit včetně `dist/`, nový tag, v projektu `composer update michalosoft/content-editor`.
+
+### Co je zatím specifické pro mytimi (k zobecnění při napojení dalšího projektu)
+
+- tlačítko `div.flex.f-jc-center > a.btn` a akce kontaktního formuláře (`core/schema.ts`, `core/urls.ts`, `ui/dialogs.ts`),
+- sloupce `.cms-cols` (`core/schema.ts`) - web musí mít odpovídající CSS,
+- třída obrázků/tabulek `img-responsive`,
+- `lang="cs"`, české texty UI bez i18n,
+- hostitelská vrstva (napojení na správce souborů, proměnné, náhled) je zatím v projektu (mytimi2 `admin/content_editor/`, `admin/framework/content_editor.php`).
