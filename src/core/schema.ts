@@ -90,6 +90,15 @@ export function configureMarkup(o: MarkupOptions = {}): void {
     }
 }
 
+/** Pevne rozmery iframe videa (cisla v px nebo %), "100%" = vychozi. */
+function iframeSize(f: HTMLElement): { width: string | null; height: string | null } {
+    const v = (a: string) => {
+        const x = (f.getAttribute(a) || "").trim();
+        return /^\d+%?$/.test(x) && x !== "100%" ? x : null;
+    };
+    return { width: v("width"), height: v("height") };
+}
+
 function isVideoWrapper(el: HTMLElement): boolean {
     if (el.classList.contains("video-container")) return true;
     const cls = markup.video.wrapperClass.split(/\s+/).filter(Boolean);
@@ -259,7 +268,8 @@ const nodes: Record<string, NodeSpec> = {
         atom: true,
         selectable: true,
         draggable: true,
-        attrs: { src: { default: "" }, title: { default: "YouTube video player" } },
+        // width/height = pevne rozmery ze stareho obsahu (iframe width="410"), jinak 100 % obalu
+        attrs: { src: { default: "" }, title: { default: "YouTube video player" }, width: { default: null }, height: { default: null } },
         parseDOM: [
             {
                 tag: "div",
@@ -269,14 +279,14 @@ const nodes: Record<string, NodeSpec> = {
                     if (!isVideoWrapper(el) || el.children.length !== 1) return false;
                     const f = el.querySelector("iframe");
                     const src = youtubeEmbed(f?.getAttribute("src"));
-                    return f && src ? { src, title: f.getAttribute("title") || "YouTube video player" } : false;
+                    return f && src ? { src, title: f.getAttribute("title") || "YouTube video player", ...iframeSize(f) } : false;
                 },
             },
             {
                 tag: "iframe",
                 getAttrs(dom) {
                     const src = youtubeEmbed((dom as HTMLElement).getAttribute("src"));
-                    return src ? { src, title: (dom as HTMLElement).getAttribute("title") || "YouTube video player" } : false;
+                    return src ? { src, title: (dom as HTMLElement).getAttribute("title") || "YouTube video player", ...iframeSize(dom as HTMLElement) } : false;
                 },
             },
         ],
@@ -286,10 +296,10 @@ const nodes: Record<string, NodeSpec> = {
                 allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
                 allowfullscreen: "",
                 frameborder: "0",
-                height: "100%",
+                height: node.attrs.height || "100%",
                 src: youtubeEmbed(node.attrs.src),
                 title: node.attrs.title || "YouTube video player",
-                width: "100%",
+                width: node.attrs.width || "100%",
             }]];
         },
     },
