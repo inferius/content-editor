@@ -29,7 +29,7 @@ Licence závislostí: ProseMirror, prosemirror-tables a CodeMirror 6 jsou MIT. N
 | Co editor udělá | Kdy |
 |---|---|
 | zachová beze změny | vše, co schéma zná, včetně tříd tlačítek a obrázků, `alt=""`, zarovnání, odsazení a záměrných barev / zvýraznění / velikostí písma; třídy seznamů, položek a nadpisů (`ul.blue-dots`, `li.small-title`, `h3.big-title`), `span` s třídou webu (`span.big-text`), obtékání a okraje obrázků (`float`, `margin`), šířky a výšky buněk tabulek |
-| zachová a zobrazí jako **kontejner** (obsah uvnitř se upravuje normálně) | `div` s vlastní třídou nebo stylem (layout webu) |
+| zachová a zobrazí jako **kontejner** (obsah uvnitř se upravuje normálně) | `div` s bloky uvnitř (s třídou i bez - layout webu); `div` jen s textem zůstane `div` s textem (bez vloženého `<p>`) |
 | zachová přesně jako **HTML blok** | neznámé prvky (skripty, formuláře, jiné iframy), upravit se dají jen ve zdroji |
 | zahodí | balast z Wordu a Google Docs (`paraeid`, `aria-*`, `data-*`, fonty, výchozí černá a bílá, 11–12pt, `page-break`), prázdné seznamy |
 | ze schránky nepustí | HTML bloky, kontejnery, skripty, formuláře, iframy, třídy a styly zdrojového webu (seznamy, nadpisy, `span`, obtékání) |

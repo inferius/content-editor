@@ -31,7 +31,7 @@ const items = JSON.parse(readFileSync(dataArg ?? new URL("./.data/content.json",
 if (EXCLUDE.length) console.log("vynechano:", EXCLUDE.join(", "));
 
 // prvky, ktere musi zustat (pocet pred == po)
-const KEEP = ["a", "img", "table", "tr", "td", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "iframe", "strong", "em", "hr", "sup", "sub", "u", "s"];
+const KEEP = ["a", "img", "div", "table", "tr", "td", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "iframe", "strong", "em", "hr", "sup", "sub", "u", "s"];
 const NORMALIZE_TAG = { b: "strong", i: "em", del: "s", strike: "s", th: "td" };
 
 function el(html) {

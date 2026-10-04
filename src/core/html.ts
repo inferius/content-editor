@@ -28,7 +28,7 @@ export const pasteParser = new PMDOMParser(schema, [
     // bez HTML bloku a kontejneru: cizi layout (div s tridami jineho webu) se rozbali na obsah;
     // bez barev / pozadi / velikosti pisma - prohlizec pri kopirovani pribali vykreslene styly zdroje
     // (napr. svetle modry <code> z tmave administrace), barva se nastavuje paletou
-    ...(contentParser.rules as ParseRule[]).filter((r) => (!("node" in r) || (r.node !== "rawhtml" && r.node !== "container"))
+    ...(contentParser.rules as ParseRule[]).filter((r) => (!("node" in r) || (r.node !== "rawhtml" && r.node !== "container" && r.node !== "textbox"))
         && (!("mark" in r) || (r.mark !== "textstyle" && r.mark !== "spanclass")))
         .map(withoutForeignLook),
     // skripty a styly ze schranky zahodit uplne (vcetne obsahu)

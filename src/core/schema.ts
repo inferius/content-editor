@@ -146,6 +146,18 @@ function withStyle(attrs: Record<string, string | null>, style: string | null): 
     return out;
 }
 
+/** Prvky, ktere v divu znamenaji blokovy obsah (div pak neni "jen text"). */
+const BLOCK_TAGS = new Set(["DIV", "P", "UL", "OL", "LI", "TABLE", "H1", "H2", "H3", "H4", "H5", "H6", "BLOCKQUOTE", "PRE", "HR",
+    "IFRAME", "FIGURE", "SECTION", "ARTICLE", "ASIDE", "NAV", "HEADER", "FOOTER", "FORM", "SCRIPT", "NOSCRIPT", "VIDEO", "AUDIO",
+    "OBJECT", "EMBED", "CANVAS", "SVG", "DETAILS", "DL", "ADDRESS", "FIELDSET", "MAIN"]);
+
+function hasOnlyInlineContent(el: HTMLElement): boolean {
+    for (const ch of Array.from(el.children)) {
+        if (BLOCK_TAGS.has(ch.tagName.toUpperCase())) return false;
+    }
+    return true;
+}
+
 function isWhitespaceOnly(el: HTMLElement): boolean {
     return el.children.length === 0 && (el.textContent || "").replace(/[\s\u00a0]/g, "") === "";
 }
@@ -321,7 +333,32 @@ const nodes: Record<string, NodeSpec> = {
                 const el = dom as HTMLElement;
                 const st = parseStyle(el.getAttribute("style"));
                 if (st["page-break-after"] || st["page-break-before"]) return false; // zlom stranky z Wordu
-                if (!el.getAttribute("class") && !el.getAttribute("style") && !el.id) return false; // obycejny obal
+                // i obycejny <div> bez trid - obal v layoutu webu (div.payment-line > div), web s nim pocita
+                return { cls: el.getAttribute("class"), style: el.getAttribute("style"), id: el.id || null };
+            },
+        }],
+        toDOM(node): DOMOutputSpec {
+            return ["div", withStyle({ class: node.attrs.cls, id: node.attrs.id }, node.attrs.style), 0];
+        },
+    },
+
+    /**
+     * Div jen s textem (bez bloku uvnitr): <div class="small-text">Text <strong>...</strong></div>.
+     * Zustane div s textem - bez <p> uvnitr (jinak by se zmenilo rozlozeni webu, napr. polozky ceniku).
+     */
+    textbox: {
+        group: "block",
+        content: "inline*",
+        defining: true,
+        attrs: { cls: { default: null }, style: { default: null }, id: { default: null } },
+        parseDOM: [{
+            tag: "div",
+            priority: 45,
+            getAttrs(dom) {
+                const el = dom as HTMLElement;
+                const st = parseStyle(el.getAttribute("style"));
+                if (st["page-break-after"] || st["page-break-before"]) return false;
+                if (!hasOnlyInlineContent(el)) return false;
                 return { cls: el.getAttribute("class"), style: el.getAttribute("style"), id: el.id || null };
             },
         }],
