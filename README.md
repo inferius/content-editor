@@ -28,13 +28,13 @@ Licence závislostí: ProseMirror, prosemirror-tables a CodeMirror 6 jsou MIT. N
 
 | Co editor udělá | Kdy |
 |---|---|
-| zachová beze změny | vše, co schéma zná, včetně tříd tlačítek a obrázků, `alt=""`, zarovnání, odsazení a záměrných barev / zvýraznění / velikostí písma |
+| zachová beze změny | vše, co schéma zná, včetně tříd tlačítek a obrázků, `alt=""`, zarovnání, odsazení a záměrných barev / zvýraznění / velikostí písma; třídy seznamů, položek a nadpisů (`ul.blue-dots`, `li.small-title`, `h3.big-title`), `span` s třídou webu (`span.big-text`), obtékání a okraje obrázků (`float`, `margin`), šířky a výšky buněk tabulek |
 | zachová a zobrazí jako **kontejner** (obsah uvnitř se upravuje normálně) | `div` s vlastní třídou nebo stylem (layout webu) |
 | zachová přesně jako **HTML blok** | neznámé prvky (skripty, formuláře, jiné iframy), upravit se dají jen ve zdroji |
 | zahodí | balast z Wordu a Google Docs (`paraeid`, `aria-*`, `data-*`, fonty, výchozí černá a bílá, 11–12pt, `page-break`), prázdné seznamy |
-| ze schránky nepustí | HTML bloky, kontejnery, skripty, formuláře, iframy |
+| ze schránky nepustí | HTML bloky, kontejnery, skripty, formuláře, iframy, třídy a styly zdrojového webu (seznamy, nadpisy, `span`, obtékání) |
 
-Odkazy smí mít jen `http(s)`, `mailto:`, `tel:`, relativní adresu nebo povolené akce webu (`ALLOWED_JS_ACTIONS` v `src/core/urls.ts`).
+Odkazy smí mít jen `http(s)`, `mailto:`, `tel:`, relativní adresu nebo povolené akce webu (`ALLOWED_JS_ACTIONS` v `src/core/urls.ts`, další přes `markup.jsActions`).
 
 Ověřuje se testem tam a zpět nad obsahem z DB:
 
@@ -43,7 +43,10 @@ php tools/export_content.php
 npm run roundtrip
 ```
 
-Stav k 30. 9. 2026: 1 452 textů, žádná změna viditelného textu, žádný nestabilní výsledek. Lokalizační texty (`_front_lang_texts_lang_data`) jsou fragmenty bez `<p>` a s `id` pro skripty, na ty editor zatím určený není.
+Jiný projekt: export do JSON (`[{table, column, id, html}]`) a `node tools/roundtrip.mjs --data=export.json --markup='{"video":{...}}'`.
+
+Stav k 30. 9. 2026: 1 452 textů, žádná změna viditelného textu, žádný nestabilní výsledek.
+Stav k 4. 10. 2026 (anoda + cestadocloudu, admin na jádru EasyAdmin): 1 492 textů, žádná změna viditelného textu, žádný nestabilní výsledek; zahazuje se jen balast z Wordu (mimo pole s měřicími skripty, ta editor obsahu nepoužívají). Lokalizační texty (`_front_lang_texts_lang_data`) jsou fragmenty bez `<p>` a s `id` pro skripty, na ty editor zatím určený není.
 
 ## Použití
 
@@ -93,11 +96,12 @@ Pole, kam se vkladaji skripty a HTML (Nastaveni webu -> Merici a konverzni kody)
 | `preset` | `full` (vše), `article` (vše kromě HTML bloku), `basic` (text, odkazy, seznamy, nadpisy), `minimal` (tučně, kurzíva, odkaz) |
 | `features` / `enable` / `disable` | přesný výčet funkcí / přidat / ubrat (`ALL_FEATURES` v `src/editor/features.ts`) |
 | `headings` | povolené úrovně nadpisů, např. `[2, 3]` |
-| `variables` | proměnné: `{ name, label, description?, group?, offer?, params?: [{ label, placeholder?, hint?, quoted?, pattern? }] }` - `group` = skupina v nabídce, `offer: false` = editor proměnnou zná (čip), ale nenabízí ji |
+| `variables` | proměnné: `{ name, label, description?, group?, offer?, params?: [{ label, placeholder?, hint?, quoted?, pattern?, options? }] }` - `group` = skupina v nabídce, `offer: false` = editor proměnnou zná (čip), ale nenabízí ji, `options: [{ value, label }]` = parametr se vybírá ze seznamu a čip ukazuje popisek |
 | `renderVariables(codes)` | `Promise<{ kód: html }>` - co z proměnných udělá web (náhled čipů) |
 | `renderPreview(html)` | `Promise<html>` - celý obsah, jak ho zobrazí web (okno náhledu) |
 | `web` | `{ css: [url], wrappers: ["třídy obalu", ...], contentClass, width, extraCss, bodyClass, baseUrl }` |
 | `colors` | paleta barev textu `[{ label, value }]` |
+| `markup` | markup podle webu (platí pro celou stránku, viz `ContentEditor.configureMarkup`): `{ video: { wrapperClass, iframeClass }, jsActions: ["scrollToSelector"] }` - obal YouTube videa (rozpozná se výchozí i nastavený, uloží se nastavený) a funkce webu povolené v odkazech `javascript:nazev('argument')` |
 
 Omezení funkcí platí jen pro nabídku (toolbar, menu, zkratky). Existující obsah zůstane a jde upravit i smazat.
 
