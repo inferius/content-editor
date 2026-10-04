@@ -33,7 +33,7 @@ export function previewDocument(html: string, web: WebLook | null, opts: { paddi
     return frameDocument(html, web, opts);
 }
 
-export const version = "0.2.0";
+export const version = "0.2.1";
 
 export function create(element: HTMLElement, html: string, options: ContentEditorOptions = {}): ContentEditor {
     return new ContentEditor(element, html, options);

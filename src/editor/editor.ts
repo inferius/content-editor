@@ -383,8 +383,14 @@ export class ContentEditor {
         this.statusNote = null;
         this.status.classList.remove("is-note");
         this.status.textContent = `${words} ${words === 1 ? "slovo" : words >= 2 && words <= 4 ? "slova" : "slov"}  |  `
-            + (vars ? "{$ = proměnné webu (specialista, Instagram...), " : "")
+            + (vars ? "{$ = proměnné webu (" + this.variableExamples() + "), " : "")
             + "Enter nový odstavec, Shift+Enter nový řádek, ## nadpis, - odrážky";
+    }
+
+    /** Priklady promennych pro napovedu ve stavovem radku (prvni dve nabizene). */
+    private variableExamples(): string {
+        const labels = (this.opts.variables || []).filter((d) => d.offer !== false).map((d) => d.label.toLowerCase());
+        return labels.slice(0, 2).join(", ") + (labels.length > 2 ? "..." : "");
     }
 
     /** Kratka zprava ve stavovem radku, pak zpet napoveda. */

@@ -1,6 +1,6 @@
 {
   "name": "@mytimi/content-editor",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Blokovy editor obsahu nad ProseMirror (nahrada CKEditoru). Vystup = ciste HTML.",
   "license": "UNLICENSED",
