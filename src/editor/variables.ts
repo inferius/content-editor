@@ -36,6 +36,19 @@ export interface VariableParam {
     quoted?: boolean;
     /** Regularni vyraz: kdyz na zadany text sedi, pouzije se jeho 1. skupina (napr. kod z celeho odkazu). */
     pattern?: string;
+    /** Vyber ze seznamu (napr. stranky, polozky nastaveni) misto psani; na cipu se zobrazi popisek. */
+    options?: VariableOption[];
+}
+
+export interface VariableOption {
+    value: string;
+    label: string;
+}
+
+/** Hodnota parametru pro cip: popisek z options, jinak hodnota. */
+function paramLabel(def: VariableDef | undefined, index: number, value: string): string {
+    const opt = paramsOf(def)[index]?.options?.find((o) => o.value === value);
+    return opt ? opt.label : value;
 }
 
 export function paramsOf(def: VariableDef | null | undefined): VariableParam[] {
@@ -142,7 +155,7 @@ export class VariableView implements NodeView {
         const { name, args } = this.node.attrs as { name: string; args: string | null };
         const def = this.ctx.defs.get(name);
         const code = varText(name, args);
-        const value = splitArgs(args).filter((v) => v !== "").join(", ");
+        const value = splitArgs(args).map((v, i) => (v === "" ? "" : paramLabel(def, i, v))).filter((v) => v !== "").join(", ");
         const canPreview = !!def && def.preview !== false && !!this.ctx.renderer;
         const preview = this.ctx.mode() === "preview" && canPreview;
         this.dom.className = ["ce-var", !def && "is-unknown", preview && "is-preview"].filter(Boolean).join(" ");
@@ -232,9 +245,19 @@ export async function variableDialog(def: VariableDef | null, current: VariableV
     name.value = def?.name || current?.name || "";
     const params = paramsOf(def);
     const currentValues = splitArgs(current?.args ?? null);
-    const inputs = params.map((p, i) => {
-        const el = h("input", { type: "text", class: "ce-input", spellcheck: "false", placeholder: p.placeholder || "" });
-        el.value = currentValues[i] ?? "";
+    const inputs: Array<HTMLInputElement | HTMLSelectElement> = params.map((p, i) => {
+        const value = currentValues[i] ?? "";
+        if (p.options?.length) {
+            // vyber ze seznamu; neznama hodnota z textu zustane jako moznost, aby se neztratila
+            const sel = h("select", { class: "ce-input" }) as HTMLSelectElement;
+            sel.appendChild(h("option", { value: "", text: p.placeholder || "- vyberte -" }));
+            for (const o of p.options) sel.appendChild(h("option", { value: o.value, text: o.label }));
+            if (value && !p.options.some((o) => o.value === value)) sel.appendChild(h("option", { value, text: value + " (neznámá hodnota)" }));
+            sel.value = value;
+            return sel;
+        }
+        const el = h("input", { type: "text", class: "ce-input", spellcheck: "false", placeholder: p.placeholder || "" }) as HTMLInputElement;
+        el.value = value;
         return el;
     });
     const raw = h("input", { type: "text", class: "ce-input", spellcheck: "false" });
@@ -258,7 +281,7 @@ export async function variableDialog(def: VariableDef | null, current: VariableV
             : (raw.value.trim() === "" ? null : raw.value.replace(/[{}]/g, "")),
     });
     const refresh = () => { const r = result(); code.textContent = r.name ? varText(r.name, r.args) : ""; };
-    [name, raw, ...inputs].forEach((el) => el.addEventListener("input", refresh));
+    [name, raw, ...inputs].forEach((el) => { el.addEventListener("input", refresh); el.addEventListener("change", refresh); });
     refresh();
 
     const submit = () => {

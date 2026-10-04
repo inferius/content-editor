@@ -14,8 +14,9 @@ import { frameDocument, type WebLook } from "./editor/web";
 export { ContentEditor, SourceEditor };
 export type { ContentEditorOptions, SourceOptions };
 export { parseHTML, serializeHTML } from "./core/html";
+export { configureMarkup, type MarkupOptions } from "./core/schema";
 export { PRESETS, ALL_FEATURES, type Feature } from "./editor/features";
-export type { VariableDef, VariableParam, RenderVariables } from "./editor/variables";
+export type { VariableDef, VariableParam, VariableOption, RenderVariables } from "./editor/variables";
 export type { WebLook } from "./editor/web";
 export { sanitizePreview } from "./editor/web";
 

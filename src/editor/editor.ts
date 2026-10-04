@@ -4,6 +4,7 @@
  *   const ed = new ContentEditor(hostElement, "<p>Ahoj</p>", { pickImage, uploadImage });
  *   ed.getHTML(); ed.setHTML(html); ed.on("change", fn); ed.destroy();
  */
+import { configureMarkup, type MarkupOptions } from "../core/schema";
 import { EditorState, NodeSelection, Selection, type Command, type Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import type { Node as PMNode } from "prosemirror-model";
@@ -55,6 +56,8 @@ export interface ContentEditorOptions extends FeatureOptions {
     colors?: ColorDef[];
     /** Odkaz na spravu promennych (Kody do textu) - polozka v nabidkach promennych. */
     manageVariablesUrl?: string | null;
+    /** Markup podle webu (napr. obal videa) - plati pro vsechny editory na strance, viz configureMarkup. */
+    markup?: MarkupOptions | null;
 }
 
 type EventName = "change" | "focus" | "blur";
@@ -101,6 +104,7 @@ export class ContentEditor {
     private defs: Map<string, VariableDef>;
 
     constructor(host: HTMLElement, html: string, private opts: ContentEditorOptions = {}) {
+        if (opts.markup) configureMarkup(opts.markup);
         this.features = new Features(opts);
         this.defs = new Map((opts.variables || []).map((d) => [d.name, d]));
         this.varCtx = {

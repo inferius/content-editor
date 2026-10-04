@@ -29,11 +29,33 @@ export const pasteParser = new PMDOMParser(schema, [
     // bez barev / pozadi / velikosti pisma - prohlizec pri kopirovani pribali vykreslene styly zdroje
     // (napr. svetle modry <code> z tmave administrace), barva se nastavuje paletou
     ...(contentParser.rules as ParseRule[]).filter((r) => (!("node" in r) || (r.node !== "rawhtml" && r.node !== "container"))
-        && (!("mark" in r) || r.mark !== "textstyle")),
+        && (!("mark" in r) || (r.mark !== "textstyle" && r.mark !== "spanclass")))
+        .map(withoutForeignLook),
     // skripty a styly ze schranky zahodit uplne (vcetne obsahu)
     ...["script", "style", "meta", "link", "title", "noscript", "iframe", "object", "embed", "form", "button", "input", "select", "textarea"]
         .map((tag) => ({ tag, ignore: true, priority: 100 } as ParseRule)),
 ]);
+
+/**
+ * Vlozeny obsah bez trid a stylu zdroje (seznamy, polozky, nadpisy, obtekani obrazku) -
+ * tridy jineho webu tu nic neznamenaji. Zachovaji se jen u ulozeneho obsahu (contentParser).
+ */
+function withoutForeignLook(rule: ParseRule): ParseRule {
+    const strip: Record<string, string[]> = { heading: ["cls"], bullet_list: ["cls", "style"], ordered_list: ["cls", "style"], list_item: ["cls"], image: ["style"] };
+    const keys = "node" in rule && rule.node ? strip[rule.node] : undefined;
+    if (!keys || !rule.getAttrs) return rule;
+    const orig = rule.getAttrs;
+    return {
+        ...rule,
+        getAttrs(dom: HTMLElement | string) {
+            const attrs = (orig as (d: HTMLElement | string) => ReturnType<typeof orig>)(dom);
+            if (!attrs) return attrs;
+            const out = { ...attrs } as Record<string, unknown>;
+            for (const k of keys) delete out[k];
+            return out;
+        },
+    } as ParseRule;
+}
 
 export const serializer = DOMSerializer.fromSchema(schema);
 

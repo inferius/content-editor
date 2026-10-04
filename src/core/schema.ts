@@ -13,7 +13,7 @@
 import { Schema, type NodeSpec, type MarkSpec, type DOMOutputSpec, type Node as PMNode } from "prosemirror-model";
 import { addListNodes } from "prosemirror-schema-list";
 import { tableNodes } from "prosemirror-tables";
-import { safeHref, safeSrc, youtubeEmbed, CONTACT_FORM_ACTION } from "./urls";
+import { safeHref, safeSrc, youtubeEmbed, CONTACT_FORM_ACTION, setJsActions } from "./urls";
 import { varText, varRegExp } from "./vartext";
 
 // ---------------------------------------------------------------- pomocne
@@ -47,6 +47,55 @@ export function safeColumnWidths(value: string | null | undefined): string | nul
     if (parts.length < 2 || parts.length > 4) return null;
     return parts.every((p) => /^(\d+(\.\d+)?(fr|%|px|rem|em)|auto)$/.test(p)) ? parts.join(" ") : null;
 }
+/**
+ * Trida prvku ze stareho obsahu bez balastu z Wordu / Office Online / rozsireni prohlizece
+ * (TextRun, SCXW123, BCX0, eJOY__...). Jen bezne nazvy trid, jinak null.
+ */
+export function safeClass(value: string | null | undefined): string | null {
+    const cls = String(value || "").split(/\s+/)
+        .filter((c) => /^[A-Za-z_][\w-]*$/.test(c) && !/^(TextRun|NormalTextRun|EOP|SpellingError|SCXW\d+|BCX\d+|Mso\w*|eJOY__\w*)$/.test(c));
+    return cls.length ? cls.join(" ") : null;
+}
+
+/** Vybrane CSS vlastnosti z atributu style (jen bezne hodnoty bez url(), expression() apod.). */
+function keepStyles(st: Record<string, string>, allowed: string[]): string | null {
+    const out: Record<string, string> = {};
+    for (const k of allowed) {
+        const v = st[k];
+        if (v && /^[\w\s.,%#()-]+$/.test(v) && !/(url|expression)\s*\(/i.test(v)) out[k] = v;
+    }
+    return styleString(out);
+}
+
+/**
+ * Markup podle webu, kam se obsah uklada (nastavuje se pred vytvorenim editoru):
+ *   configureMarkup({ video: { wrapperClass: "embed-responsive embed-responsive-16by9", iframeClass: "embed-responsive-item" } })
+ * Video se rozpozna podle vychoziho i nastaveneho obalu, ulozi se s nastavenym.
+ */
+export interface MarkupOptions {
+    video?: { wrapperClass?: string; iframeClass?: string | null };
+    /** funkce webu povolene v odkazech (javascript:scrollToSelector('#map')) */
+    jsActions?: string[];
+}
+
+const markup = {
+    video: { wrapperClass: "video-container", iframeClass: null as string | null },
+};
+
+export function configureMarkup(o: MarkupOptions = {}): void {
+    if (o.jsActions) setJsActions(o.jsActions);
+    if (o.video) {
+        markup.video.wrapperClass = o.video.wrapperClass || "video-container";
+        markup.video.iframeClass = o.video.iframeClass ?? null;
+    }
+}
+
+function isVideoWrapper(el: HTMLElement): boolean {
+    if (el.classList.contains("video-container")) return true;
+    const cls = markup.video.wrapperClass.split(/\s+/).filter(Boolean);
+    return cls.length > 0 && cls.every((c) => el.classList.contains(c));
+}
+
 /** Odsazeni odstavce: margin-left po 40 px (tak ho delal CKEditor). */
 export const INDENT_STEP = 40;
 
@@ -66,6 +115,19 @@ function blockStyle(node: PMNode): string | null {
         "text-align": node.attrs.align,
         "margin-left": node.attrs.indent ? `${node.attrs.indent * INDENT_STEP}px` : null,
     });
+}
+
+const IMAGE_STYLES = ["float", "margin", "margin-top", "margin-right", "margin-bottom", "margin-left", "max-width"];
+
+function joinStyles(...parts: (string | null)[]): string | null {
+    const s = parts.filter(Boolean).join(" ").trim();
+    return s || null;
+}
+
+/** Delka pro sirku/vysku bunky: 120px, 30%, 10em - jinak null. */
+function cssLength(v: string | null | undefined): string | null {
+    const s = String(v || "").trim().toLowerCase();
+    return /^\d+(\.\d+)?(px|%|em|rem)$/.test(s) ? s : null;
 }
 
 function withStyle(attrs: Record<string, string | null>, style: string | null): Record<string, string> {
@@ -102,13 +164,13 @@ const nodes: Record<string, NodeSpec> = {
         content: "inline*",
         group: "block",
         defining: true,
-        attrs: { level: { default: 2 }, align: { default: null }, indent: { default: 0 } },
+        attrs: { level: { default: 2 }, align: { default: null }, indent: { default: 0 }, cls: { default: null } },
         parseDOM: [1, 2, 3, 4, 5, 6].map((level) => ({
             tag: "h" + level,
-            getAttrs: (dom: HTMLElement) => ({ level, ...blockAttrsFromDom(dom) }),
+            getAttrs: (dom: HTMLElement) => ({ level, ...blockAttrsFromDom(dom), cls: safeClass(dom.getAttribute("class")) }),
         })),
         toDOM(node): DOMOutputSpec {
-            return ["h" + node.attrs.level, withStyle({}, blockStyle(node)), 0];
+            return ["h" + node.attrs.level, withStyle({ class: node.attrs.cls }, blockStyle(node)), 0];
         },
     },
 
@@ -204,7 +266,7 @@ const nodes: Record<string, NodeSpec> = {
                 priority: 60,
                 getAttrs(dom) {
                     const el = dom as HTMLElement;
-                    if (!el.classList.contains("video-container")) return false;
+                    if (!isVideoWrapper(el) || el.children.length !== 1) return false;
                     const f = el.querySelector("iframe");
                     const src = youtubeEmbed(f?.getAttribute("src"));
                     return f && src ? { src, title: f.getAttribute("title") || "YouTube video player" } : false;
@@ -219,7 +281,8 @@ const nodes: Record<string, NodeSpec> = {
             },
         ],
         toDOM(node): DOMOutputSpec {
-            return ["div", { class: "video-container" }, ["iframe", {
+            return ["div", { class: markup.video.wrapperClass }, ["iframe", {
+                ...(markup.video.iframeClass ? { class: markup.video.iframeClass } : {}),
                 allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
                 allowfullscreen: "",
                 frameborder: "0",
@@ -385,6 +448,8 @@ const nodes: Record<string, NodeSpec> = {
             cls: { default: "img-responsive" },
             width: { default: null },
             height: { default: null },
+            /** obtekani a okraje ze stareho obsahu: float, margin*, max-width */
+            style: { default: null },
         },
         parseDOM: [{
             tag: "img[src]",
@@ -400,6 +465,7 @@ const nodes: Record<string, NodeSpec> = {
                     cls: el.getAttribute("class"),
                     width: st.width || (el.getAttribute("width") ? el.getAttribute("width") + "px" : null),
                     height: st.height || (el.getAttribute("height") ? el.getAttribute("height") + "px" : null),
+                    style: keepStyles(st, IMAGE_STYLES),
                 };
             },
         }],
@@ -409,7 +475,7 @@ const nodes: Record<string, NodeSpec> = {
                 class: a.cls,
                 src: safeSrc(a.src),
                 title: a.title,
-            }, styleString({ width: a.width, height: a.height }));
+            }, joinStyles(styleString({ width: a.width, height: a.height }), a.style));
             // alt vzdy (i prazdny) - dekorativni obrazek ma mit alt=""
             return ["img", { alt: a.alt ?? "", ...attrs }];
         },
@@ -497,6 +563,7 @@ const marks: Record<string, MarkSpec> = {
         attrs: { color: { default: null }, background: { default: null }, size: { default: null } },
         parseDOM: [{
             tag: "span[style]",
+            consuming: false,
             getAttrs(dom) {
                 const st = parseStyle((dom as HTMLElement).getAttribute("style"));
                 const color = keepColor(st.color, DEFAULT_TEXT_COLORS);
@@ -509,6 +576,22 @@ const marks: Record<string, MarkSpec> = {
             return ["span", { style: styleString({ color: mark.attrs.color, "background-color": mark.attrs.background, "font-size": mark.attrs.size }) || "" }, 0];
         },
     },
+};
+
+/** Vlastni styl webu na casti textu: <span class="big-text">. Muze byt spolu s textstyle. */
+marks.spanclass = {
+    attrs: { cls: { default: null } },
+    parseDOM: [{
+        tag: "span[class]",
+        consuming: false,
+        getAttrs(dom) {
+            const el = dom as HTMLElement;
+            if (el.hasAttribute("data-ce-var")) return false;
+            const cls = safeClass(el.getAttribute("class"));
+            return cls ? { cls } : false;
+        },
+    }],
+    toDOM: (mark): DOMOutputSpec => ["span", { class: mark.attrs.cls }, 0],
 };
 
 const DEFAULT_TEXT_COLORS = ["black", "#000", "#000000", "rgb(0,0,0)", "windowtext", "inherit", "initial", "currentcolor", "#0e101a", "rgb(14,16,26)"];
@@ -585,6 +668,16 @@ const tNodes = tableNodes({
                 return ["top", "middle", "bottom"].includes(a) ? a : null;
             },
             setDOMAttr: (v, attrs) => { if (v) addStyle(attrs, `vertical-align: ${v};`); },
+        },
+        width: {
+            default: null,
+            getFromDOM: (dom) => cssLength(parseStyle(dom.getAttribute("style")).width || (dom.getAttribute("width") ? dom.getAttribute("width") + "px" : null)),
+            setDOMAttr: (v, attrs) => { if (v) addStyle(attrs, `width: ${v};`); },
+        },
+        height: {
+            default: null,
+            getFromDOM: (dom) => cssLength(parseStyle(dom.getAttribute("style")).height || (dom.getAttribute("height") ? dom.getAttribute("height") + "px" : null)),
+            setDOMAttr: (v, attrs) => { if (v) addStyle(attrs, `height: ${v};`); },
         },
         border: {
             default: null,
@@ -669,6 +762,38 @@ for (const name of ["bullet_list", "ordered_list"]) {
                 return orig === undefined ? null : orig;
             },
         })),
+    });
+}
+
+// trida seznamu (vlastni odrazky webu: "blue-dots", "colored-dots") a typ odrazky, trida polozky
+for (const name of ["bullet_list", "ordered_list"]) {
+    const spec = nodeSpecs.get(name)!;
+    const tag = name === "bullet_list" ? "ul" : "ol";
+    nodeSpecs = nodeSpecs.update(name, {
+        ...spec,
+        attrs: { ...(spec.attrs || {}), cls: { default: null }, style: { default: null } },
+        parseDOM: (spec.parseDOM || []).map((rule) => ({
+            ...rule,
+            getAttrs(dom: HTMLElement) {
+                const orig = rule.getAttrs ? rule.getAttrs(dom) : null;
+                if (orig === false) return false;
+                return { ...(orig || {}), cls: safeClass(dom.getAttribute("class")), style: keepStyles(parseStyle(dom.getAttribute("style")), ["list-style-type"]) };
+            },
+        })),
+        toDOM(node: PMNode): DOMOutputSpec {
+            const attrs: Record<string, string | null> = { class: node.attrs.cls };
+            if (name === "ordered_list" && node.attrs.order !== 1) attrs.start = String(node.attrs.order);
+            return [tag, withStyle(attrs, node.attrs.style), 0];
+        },
+    });
+}
+{
+    const spec = nodeSpecs.get("list_item")!;
+    nodeSpecs = nodeSpecs.update("list_item", {
+        ...spec,
+        attrs: { ...(spec.attrs || {}), cls: { default: null } },
+        parseDOM: [{ tag: "li", getAttrs: (dom: HTMLElement) => ({ cls: safeClass(dom.getAttribute("class")) }) }],
+        toDOM: (node: PMNode): DOMOutputSpec => ["li", withStyle({ class: node.attrs.cls }, null), 0],
     });
 }
 

@@ -9,6 +9,24 @@ export const CONTACT_FORM_ACTION = "javascript:scrollToContactForm()";
 /** Akce webu, ktere obsah smi volat z odkazu (jine javascript: odkazy editor zahodi). */
 export const ALLOWED_JS_ACTIONS = [CONTACT_FORM_ACTION, "javascript:setFocusToTextArea()"];
 
+/**
+ * Dalsi funkce webu povolene v odkazech javascript:nazev() / javascript:nazev('argument')
+ * (argument bez uvozovek, zpetnych lomitek a znacek) - nastavuje configureMarkup({ jsActions }).
+ */
+const extraJsActions: string[] = [];
+
+export function setJsActions(names: string[]): void {
+    extraJsActions.length = 0;
+    for (const n of names) if (/^[A-Za-z_$][\w$]*$/.test(n)) extraJsActions.push(n);
+}
+
+function allowedJsAction(v: string): string {
+    const m = v.match(/^javascript:\s*([A-Za-z_$][\w$]*)\(\s*(?:'([^'"\<>]*)'|"([^'"\<>]*)")?\s*\);?$/);
+    if (!m || !extraJsActions.includes(m[1])) return "";
+    const arg = m[2] ?? m[3];
+    return arg === undefined ? `javascript:${m[1]}()` : `javascript:${m[1]}('${arg}')`;
+}
+
 const SAFE_SCHEME = /^(https?:|mailto:|tel:)/i;
 const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
 
@@ -18,6 +36,8 @@ export function safeHref(href: string | null | undefined): string {
     if (v === "") return "";
     const action = ALLOWED_JS_ACTIONS.find((a) => a === v.replace(/\s+/g, ""));
     if (action) return action;
+    const extra = allowedJsAction(v);
+    if (extra) return extra;
     // ridici znaky a mezery pred schematem se v prohlizeci ignoruji ("java\tscript:")
     const compact = v.replace(/[\x00-\x20]+/g, "");
     if (HAS_SCHEME.test(compact) && !SAFE_SCHEME.test(compact)) return "";

@@ -1,14 +1,14 @@
 // Test tam a zpet: kazdy text z DB projde editorem (HTML -> dokument -> HTML)
 // a porovna se s originalem. Ukazuje, co by editor pri otevreni a ulozeni zmenil.
 //
-//   php tools/export_content.php && node build.mjs && node tools/roundtrip.mjs [--samples=N]
+//   php tools/export_content.php && node build.mjs && node tools/roundtrip.mjs [--samples=N] [--data=export.json]
 //
 // Kontroly:
 //   text      - viditelny text musi zustat stejny (jinak CHYBA)
 //   prvky     - pocty odkazu, obrazku, tabulek, nadpisu, seznamu pred a po
 //   zahozeno  - atributy / styly / znacky, ktere editor nezna (balast z Wordu)
 //   stabilita - druhy pruchod musi dat stejny vysledek
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { JSDOM } from "jsdom";
 
 const dom = new JSDOM("<!doctype html><html><body></body></html>");
@@ -17,11 +17,17 @@ globalThis.document = dom.window.document;
 
 const { parseHTML, serializeHTML } = await import("../dist-node/core.mjs");
 
+// --markup='{"video":{"wrapperClass":"...","iframeClass":"..."}}' = markup jineho webu (configureMarkup)
+const markupArg = process.argv.find((x) => x.startsWith("--markup="))?.slice(9);
+if (markupArg) (await import("../dist-node/core.mjs")).configureMarkup(JSON.parse(markupArg));
+
 const samplesArg = process.argv.find((a) => a.startsWith("--samples="));
 const SAMPLES = samplesArg ? parseInt(samplesArg.split("=")[1], 10) : 3;
 // lokalizacni texty jsou fragmenty (bez <p>, s id pro skripty webu) - editor pro ne zatim neni urcen
 const EXCLUDE = (process.argv.find((a) => a.startsWith("--exclude="))?.split("=")[1] ?? "_front_lang_texts_lang_data").split(",").filter(Boolean);
-const items = JSON.parse(readFileSync(new URL("./.data/content.json", import.meta.url), "utf8")).filter((i) => !EXCLUDE.includes(i.table));
+// --data=cesta.json = export z jineho projektu (vychozi tools/.data/content.json z export_content.php)
+const dataArg = process.argv.find((a) => a.startsWith("--data="))?.slice(7);
+const items = JSON.parse(readFileSync(dataArg ?? new URL("./.data/content.json", import.meta.url), "utf8")).filter((i) => !EXCLUDE.includes(i.table));
 if (EXCLUDE.length) console.log("vynechano:", EXCLUDE.join(", "));
 
 // prvky, ktere musi zustat (pocet pred == po)
@@ -152,4 +158,5 @@ Object.entries(report.countDiffs).forEach(([t, r]) => console.log(`  ${t}: ${r.d
 console.log(`\nZAHOZENE ZNACKY:`, top(report.droppedTags).map(([k, v]) => `${k}(${v})`).join(" ") || "-");
 console.log(`\nZAHOZENE ATRIBUTY/STYLY:`);
 top(report.droppedAttrs, 40).forEach(([k, v]) => console.log(`  ${k}: ${v}`));
+mkdirSync(new URL("./.data/", import.meta.url), { recursive: true });
 writeFileSync(new URL("./.data/report.json", import.meta.url), JSON.stringify(report, null, 2));
