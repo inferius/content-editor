@@ -57,7 +57,9 @@ Stav k 4. 10. 2026 (anoda + cestadocloudu, admin na jádru EasyAdmin): 1 492 tex
     // 1) nahrada textarey - rozhrani jako CKEDITOR.replace (getData, setData, on("change"), destroy ...)
     const ed = ContentEditor.replace(document.getElementById("text"), {
         pickImage: () => MediaLibrary.pick(config, { accept: "image" }).then((f) => f && { src: f.url }),
-        uploadImage: (file) => /* nahrat, vratit { src } */,
+        uploadImage: (file) => /* nahrat, vratit { src, reused? } */,
+        importImage: (url, { name }) => /* stahnout obrazek z Google Docs, vratit { src } */,
+        imageLibraryName: "správce souborů", // "Ukládám obrázky do ..." (vychozi "Souborů a obrázků")
     });
 
     // 2) primo do prvku

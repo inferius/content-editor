@@ -40,6 +40,8 @@ export interface ContentEditorOptions extends FeatureOptions {
     importImage?: ((url: string, o?: { folder?: string; name?: string }) => Promise<{ src: string; reused?: boolean }>) | null;
     /** Slozka knihovny pro obrazky vlozene z dokumentu (Word, Google Docs). Bez ni koren hostitele. */
     documentImagesFolder?: string;
+    /** Kam se obrazky ukladaji - 2. pad do stavoveho radku ("Ukládám obrázky do ..."). Vychozi "Souborů a obrázků". */
+    imageLibraryName?: string;
     /** Minimalni vyska obsahu v px. */
     minHeight?: number;
     /** Klic pro zapamatovani vysky editoru v prohlizeci (napr. nazev pole). Bez nej se nepamatuje. */
@@ -456,7 +458,7 @@ export class ContentEditor {
         this.status.classList.add("is-busy");
         const progress = () => {
             // prubeh drzet i pri psani (refreshUi by ho jinak prepsal napovedou)
-            this.statusNote = { text: `Ukládám obrázky do Souborů a obrázků (${done}/${images.length}) - do uložení článku se dostanou až po dokončení...`, until: Date.now() + 120000 };
+            this.statusNote = { text: `Ukládám obrázky do ${this.opts.imageLibraryName || "Souborů a obrázků"} (${done}/${images.length}) - do uložení textu se dostanou až po dokončení...`, until: Date.now() + 120000 };
             if (!this.destroyed) this.refreshUi();
         };
         progress();
