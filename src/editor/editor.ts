@@ -52,6 +52,11 @@ export interface ContentEditorOptions extends FeatureOptions {
     renderVariables?: RenderVariables | null;
     /** Cely obsah jak ho zobrazi web (promenne nahrazene serverem). Bez nej se pouzije renderVariables. */
     renderPreview?: ((html: string) => Promise<string>) | null;
+    /**
+     * Cela stranka webu s neulozenym obsahem: adresa pro iframe nahledu (stranka i se skripty webu - galerie,
+     * slidery, hlavicka). null = stranka nejde (novy zaznam bez adresy) - nahled jen obsahu (renderPreview).
+     */
+    previewPage?: ((html: string) => Promise<string | null>) | null;
     /** Styly a obaly webu - vzhled webu v editoru a nahled. */
     web?: WebLook | null;
     /** Paleta barev textu. */
@@ -947,13 +952,19 @@ export class ContentEditor {
         this.refreshUi();
     }
 
-    /** Nahled: obsah jak ho zobrazi web (promenne nahrazene), v izolovanem okne se sirkou zarizeni. */
+    /**
+     * Nahled jak na webu v okne se sirkou zarizeni. S previewPage cela stranka webu s neulozenym obsahem
+     * (hlavicka, skripty webu - galerie, slidery), prepinac "Jen obsah" = obsah ve stylech webu (renderPreview).
+     */
     async openPreview(): Promise<void> {
         closeMenu();
         const html = this.getHTML();
         const m = modal("Náhled jak na webu", this.root, "ce-modal-preview");
         const frame = h("iframe", { class: "ce-preview-frame", title: "Náhled obsahu" });
-        const stage = h("div", { class: "ce-preview-stage" }, h("div", { class: "ce-preview-loading", text: "Připravuji náhled..." }));
+        const stage = h("div", { class: "ce-preview-stage" });
+        const note = h("span", { class: "ce-muted" });
+        const openLink = h("a", { class: "ce-btn ce-btn-text", target: "_blank", rel: "noopener", title: "Otevřít náhled stránky v nové záložce" }, icon("external", 16), h("span", { text: "Nová záložka" }));
+        openLink.hidden = true;
         const sizes: Array<[string, string, number | null]> = [["monitor", "Počítač", null], ["tablet", "Tablet", 768], ["phone", "Mobil", 390]];
         const btns = sizes.map(([ic, label, w]) => {
             const b = h("button", { type: "button", class: "ce-btn ce-btn-text", title: label + (w ? ` (${w} px)` : "") }, icon(ic, 16), h("span", { text: label }));
@@ -966,18 +977,59 @@ export class ContentEditor {
         });
         const savedW = readStore("content-editor:preview-size");
         (btns[sizes.findIndex(([, , w]) => String(w || "") === (savedW || ""))] || btns[0]).click();
-        m.body.append(h("div", { class: "ce-preview-bar" }, ...btns, h("span", { class: "ce-spacer" }),
-            h("span", { class: "ce-muted", text: "Obsah článku ve stylech webu, bez hlavičky a patičky stránky. Neuložené změny jsou zahrnuté." })), stage);
+
+        // stranka webu / jen obsah (bez previewPage jen obsah)
+        const pageFn = this.opts.previewPage || null;
+        let seq = 0;
+        let contentDoc: string | null = null;
+        const loading = (text: string) => { stage.textContent = ""; stage.appendChild(h("div", { class: "ce-preview-loading", text })); };
+        const show = async (page: boolean) => {
+            const my = ++seq;
+            modeBtns.forEach((b, i) => b.classList.toggle("is-active", (i === 0) === page));
+            openLink.hidden = true;
+            loading("Připravuji náhled...");
+            try {
+                if (page && pageFn) {
+                    const url = await pageFn(html);
+                    if (my !== seq) return;
+                    if (url) {
+                        frame.removeAttribute("srcdoc");
+                        frame.src = url;
+                        openLink.href = url;
+                        openLink.hidden = false;
+                        note.textContent = "Stránka webu s neuloženými změnami - tak, jak ji uvidí návštěvník.";
+                        stage.textContent = "";
+                        stage.appendChild(frame);
+                        return;
+                    }
+                    note.textContent = "Stránku webu zatím nejde zobrazit (záznam nemá adresu) - náhled jen obsahu.";
+                }
+                else note.textContent = "Obsah článku ve stylech webu, bez hlavičky, patičky a skriptů stránky. Neuložené změny jsou zahrnuté.";
+                if (contentDoc === null) {
+                    const rendered = await this.renderForPreview(html);
+                    contentDoc = frameDocument(rendered, this.opts.web || null, { scroll: true, padding: "24px 16px", width: this.opts.web?.width });
+                }
+                if (my !== seq) return;
+                frame.removeAttribute("src");
+                frame.srcdoc = contentDoc;
+                stage.textContent = "";
+                stage.appendChild(frame);
+            } catch (e) {
+                if (my !== seq) return;
+                stage.textContent = "";
+                stage.appendChild(h("div", { class: "ce-error", text: "Náhled se nepodařilo připravit: " + ((e as Error)?.message || e) }));
+            }
+        };
+        const modeBtns = pageFn ? [
+            h("button", { type: "button", class: "ce-btn ce-btn-text", title: "Celá stránka webu i se skripty (galerie, slidery)", onClick: () => { writeStore("content-editor:preview-mode", null); void show(true); } }, icon("web", 16), h("span", { text: "Stránka" })),
+            h("button", { type: "button", class: "ce-btn ce-btn-text", title: "Jen obsah pole ve stylech webu", onClick: () => { writeStore("content-editor:preview-mode", "content"); void show(false); } }, icon("paragraph", 16), h("span", { text: "Jen obsah" })),
+        ] : [];
+
+        m.body.append(h("div", { class: "ce-preview-bar" }, ...btns,
+            modeBtns.length ? h("span", { class: "ce-preview-sep" }) : null, ...modeBtns,
+            h("span", { class: "ce-spacer" }), note, openLink), stage);
         m.footer.append(h("div", { class: "ce-spacer" }), textButton("Zavřít", "secondary", () => m.close(null)));
-        try {
-            const rendered = await this.renderForPreview(html);
-            stage.textContent = "";
-            frame.srcdoc = frameDocument(rendered, this.opts.web || null, { scroll: true, padding: "24px 16px", width: this.opts.web?.width });
-            stage.appendChild(frame);
-        } catch (e) {
-            stage.textContent = "";
-            stage.appendChild(h("div", { class: "ce-error", text: "Náhled se nepodařilo připravit: " + ((e as Error)?.message || e) }));
-        }
+        await show(!!pageFn && readStore("content-editor:preview-mode") !== "content");
     }
 
     private async renderForPreview(html: string): Promise<string> {

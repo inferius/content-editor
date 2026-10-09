@@ -101,6 +101,7 @@ Pole, kam se vkladaji skripty a HTML (Nastaveni webu -> Merici a konverzni kody)
 | `variables` | proměnné: `{ name, label, description?, group?, offer?, params?: [{ label, placeholder?, hint?, quoted?, pattern?, options? }] }` - `group` = skupina v nabídce, `offer: false` = editor proměnnou zná (čip), ale nenabízí ji, `options: [{ value, label }]` = parametr se vybírá ze seznamu a čip ukazuje popisek |
 | `renderVariables(codes)` | `Promise<{ kód: html }>` - co z proměnných udělá web (náhled čipů) |
 | `renderPreview(html)` | `Promise<html>` - celý obsah, jak ho zobrazí web (okno náhledu) |
+| `previewPage(html)` | `Promise<url \| null>` - adresa celé stránky webu s neuloženým obsahem (náhled i se skripty webu - galerie, slidery); `null` = jen obsah. Přepínač „Stránka / Jen obsah“ v okně náhledu |
 | `web` | `{ css: [url], wrappers: ["třídy obalu", ...], contentClass, width, extraCss, bodyClass, baseUrl }` |
 | `colors` | paleta barev textu `[{ label, value }]` |
 | `markup` | markup podle webu (platí pro celou stránku, viz `ContentEditor.configureMarkup`): `{ video: { wrapperClass, iframeClass }, jsActions: ["scrollToSelector"] }` - obal YouTube videa (rozpozná se výchozí i nastavený, uloží se nastavený) a funkce webu povolené v odkazech `javascript:nazev('argument')` |
