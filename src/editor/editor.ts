@@ -88,6 +88,9 @@ export class ContentEditor {
     private tableTools: TableTools | null = null;
     /** Klic pevne vysky v localStorage (opts.storageKey), viz buildResize. */
     private heightKey: string | null = null;
+    /** Tahlo pod obsahem a jeho tlacitko Automaticky (viditelne jen pri pevne vysce). */
+    private grip: HTMLElement | null = null;
+    private autoHeightBtn: HTMLButtonElement | null = null;
     private onScroll: () => void = () => undefined;
     private onWindowScroll: () => void = () => undefined;
     private bodyObserver: ResizeObserver | null = null;
@@ -1048,12 +1051,19 @@ export class ContentEditor {
 
     // ------------------------------------------------------------------ vyska a tema
 
-    /** Tahlo pod obsahem: tazeni meni vysku, dvojklik vrati automatickou. Vyska se pamatuje. */
     /** Vyska podle obsahu (max. 70 % okna) - zrusi pevnou vysku nastavenou tazenim. */
     private resetHeight(): void {
         this.body.style.height = "";
         this.body.style.maxHeight = "";
         if (this.heightKey) writeStore(this.heightKey, null);
+        this.markHeight();
+    }
+
+    /** Pri pevne vysce tlacitko Automaticky na tahle (drive jen dvojklik, o kterem vedel jen title). */
+    private markHeight(): void {
+        const fixed = !!this.fixedHeight();
+        this.grip?.classList.toggle("is-fixed", fixed);
+        if (this.autoHeightBtn) this.autoHeightBtn.hidden = !fixed;
     }
 
     /** Pevna vyska v px, nebo null (roste s obsahem). */
@@ -1061,14 +1071,23 @@ export class ContentEditor {
         return this.body.style.height ? parseInt(this.body.style.height, 10) || null : null;
     }
 
+    /** Tahlo pod obsahem: tazeni meni vysku, dvojklik nebo tlacitko Automaticky vrati automatickou. Vyska se pamatuje. */
     private buildResize(): HTMLElement {
         const key = this.heightKey = this.opts.storageKey ? "content-editor:height:" + this.opts.storageKey : null;
-        const saved = key ? parseInt(readStore(key) || "", 10) : NaN;
-        if (saved > 0) this.setBodyHeight(saved);
-        const grip = h("div", {
+        // tlacitko nesmi spustit tazeni ani dvojklik tahla
+        const auto = this.autoHeightBtn = h("button", {
+            type: "button", class: "ce-resize-auto", hidden: true,
+            title: "Vrátit automatickou výšku (podle obsahu, max. 70 % okna)",
+            onPointerdown: (e: PointerEvent) => e.stopPropagation(),
+            onDblclick: (e: MouseEvent) => e.stopPropagation(),
+            onClick: () => this.resetHeight(),
+        }, icon("fitHeight", 13), "Automaticky");
+        const grip = this.grip = h("div", {
             class: "ce-resize", role: "separator", "aria-orientation": "horizontal",
             title: "Tažením změníte výšku editoru, dvojklikem vrátíte automatickou",
-        });
+        }, auto);
+        const saved = key ? parseInt(readStore(key) || "", 10) : NaN;
+        if (saved > 0) this.setBodyHeight(saved);
         grip.addEventListener("pointerdown", (e) => {
             e.preventDefault();
             const startY = e.clientY;
@@ -1098,6 +1117,7 @@ export class ContentEditor {
         const hgt = Math.max(160, Math.round(px));
         this.body.style.height = hgt + "px";
         this.body.style.maxHeight = "none";
+        this.markHeight();
     }
 
     /** Tema editoru nezavisle na administraci: auto (jako admin) / svetle / tmave. */

@@ -22,7 +22,7 @@ Licence závislostí: ProseMirror, prosemirror-tables a CodeMirror 6 jsou MIT. N
 - **Vzhled webu:** obsah se v editoru vysází styly webu (písmo, nadpisy, seznamy, tabulky) v obalech jako na webu. Styly webu se omezí jen na obsah editoru (selektory dostanou předponu `.ce-web`).
 - **Náhled jak na webu:** okno s obsahem ve stylech webu a šířkou počítač / tablet / mobil. Obsah náhledu je bez skriptů a obsluh událostí; Instagram se zobrazí přes oficiální vložený iframe.
 - **Barva textu a zvýraznění, nezlomitelná mezera** (Ctrl+Shift+Mezera).
-- **Vzhled editoru:** téma podle administrace / světlé / tmavé, výška editoru tažením (pamatuje se), celá obrazovka.
+- **Vzhled editoru:** téma podle administrace / světlé / tmavé, výška editoru tažením (pamatuje se pod `storageKey`; při pevné výšce tlačítko Automaticky na liště pod editorem vrátí výšku podle obsahu, stejně jako dvojklik na lištu), celá obrazovka.
 
 ## Věrnost obsahu
 

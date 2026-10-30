@@ -82,6 +82,8 @@ const P: Record<string, string> = {
     split: '<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M12 4v16"/><path d="M8.5 9.5 6 12l2.5 2.5M15.5 9.5 18 12l-2.5 2.5"/>',
     chevronLeft: '<path d="m14.5 6-6 6 6 6"/>',
     chevronRight: '<path d="m9.5 6 6 6-6 6"/>',
+    // vyska podle obsahu (tlacitko Automaticky na tahle pod editorem)
+    fitHeight: '<path d="M5 4h14M5 20h14M12 7.5v9M9 10.5l3-3 3 3M9 13.5l3 3 3-3"/>',
 };
 
 export function icon(name: string, size = 18): HTMLElement {

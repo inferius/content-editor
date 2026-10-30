@@ -235,6 +235,48 @@
     display: none;
 }
 
+/* pevna vyska: vyssi tahlo s tlacitkem Automaticky vpravo (madlo zustava uprostred) */
+.ce-resize.is-fixed {
+    height: 20px;
+}
+
+.ce-resize.is-fixed::after {
+    top: 8px;
+}
+
+.ce-resize-auto {
+    position: absolute;
+    right: 6px;
+    top: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 16px;
+    padding: 0 7px;
+    border: 1px solid var(--ce-border);
+    border-radius: 999px;
+    background: var(--ce-bg);
+    color: var(--ce-text-2);
+    font: inherit;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ce-resize-auto[hidden] {
+    display: none;
+}
+
+.ce-resize-auto:hover {
+    border-color: var(--ce-accent);
+    color: var(--ce-primary);
+}
+
+.ce-resize-auto:focus-visible {
+    outline: none;
+    box-shadow: var(--ce-focus);
+}
+
 .ce-content {
     min-height: 220px;
     padding: 18px 28px 24px var(--ce-gutter);
