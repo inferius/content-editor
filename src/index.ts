@@ -33,7 +33,9 @@ export function previewDocument(html: string, web: WebLook | null, opts: { paddi
     return frameDocument(html, web, opts);
 }
 
-export const version = "0.3.1";
+/** Verze balicku - build ji doplni z package.json (build.mjs, define). */
+declare const __CE_VERSION__: string;
+export const version: string = __CE_VERSION__;
 
 export function create(element: HTMLElement, html: string, options: ContentEditorOptions = {}): ContentEditor {
     return new ContentEditor(element, html, options);

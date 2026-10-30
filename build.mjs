@@ -2,10 +2,12 @@
 // a dist-node/core.mjs pro nastroje (test tam a zpet v Node).
 // Pouziti: node build.mjs [--watch]
 import * as esbuild from "esbuild";
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
 
 const watch = process.argv.includes("--watch");
 mkdirSync("dist", { recursive: true });
+// ContentEditor.version z package.json (drive rucne v src/index.ts - zustalo 0.3.1 i ve vydani 0.3.3)
+const version = JSON.parse(readFileSync("package.json", "utf8")).version;
 
 const browser = {
     entryPoints: ["src/index.ts"],
@@ -13,6 +15,7 @@ const browser = {
     format: "iife",
     globalName: "ContentEditor",
     target: ["es2019"],
+    define: { __CE_VERSION__: JSON.stringify(version) },
     minify: !watch,
     sourcemap: true,
     legalComments: "linked",
