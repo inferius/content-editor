@@ -72,6 +72,13 @@ Stav k 4. 10. 2026 (anoda + cestadocloudu, admin na jádru EasyAdmin): 1 492 tex
 </script>
 ```
 
+**Bezpečnost obsahu.** Obsah pole je HTML z databáze, tedy i od jiného uživatele. Editor ho
+parsuje a skládá v inertním dokumentu (`document.implementation.createHTMLDocument`), takže
+`<img onerror>`, `<svg onload>` apod. se v administraci nespustí. Hostitel ale musí obsah
+do `<textarea>` vypsat **escapovaný** (Latte `{$value}`, ne `|noescape`; v JS escapovat
+`& < > " '`). Neescapovaný text s `</textarea>` ukončí pole a zbytek se vykoná jako HTML
+stránky dřív, než se editor vůbec spustí.
+
 ### Samostatny editor kodu
 
 Pole, kam se vkladaji skripty a HTML (Nastaveni webu -> Merici a konverzni kody), nepotrebuje cely editor obsahu. `dist/code-editor.js` (bez ProseMirroru) pusti nad `<textarea>` jen CodeMirror - obarveni, napovedu tagu, hledani a formatovani. Textarea zustava v DOM a drzi hodnotu, takze ukladani formulare funguje beze zmeny. Vysku editoru lze pretahnout za pravy dolni roh; `height` / `onResize` necha hostitele, aby si ji ulozil (v administraci k uctu uzivatele).

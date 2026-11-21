@@ -59,10 +59,19 @@ function withoutForeignLook(rule: ParseRule): ParseRule {
 
 export const serializer = DOMSerializer.fromSchema(schema);
 
+let inertDoc: Document | null = null;
+
+/**
+ * Dokument pro parsovani a skladani HTML obsahu. Vychozi je INERTNI dokument (bez okna):
+ * prvky v nem nic nenacitaji a nespousti. Obsah je z databaze nebo od jineho uzivatele -
+ * v dokumentu stranky by <img src=x onerror=...> nebo <svg onload> spustil skript uz pri
+ * parsovani (innerHTML) nebo pri ukladani, i kdyz prvek nikdy nebyl na strance.
+ * Vlastni doc predavaji jen nastroje v Node (roundtrip, paste-test).
+ */
 function getDocument(doc?: Document): Document {
-    const d = doc ?? (typeof document !== "undefined" ? document : undefined);
-    if (!d) throw new Error("content-editor: chybi document");
-    return d;
+    if (doc) return doc;
+    if (typeof document === "undefined") throw new Error("content-editor: chybi document");
+    return inertDoc ??= document.implementation.createHTMLDocument("");
 }
 
 /** HTML retezec -> dokument. */

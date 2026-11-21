@@ -443,8 +443,9 @@ const nodes: Record<string, NodeSpec> = {
             tpl.innerHTML = node.attrs.html;
             const els = Array.from(tpl.content.childNodes).filter((n) => n.nodeType !== 3 || (n.textContent || "").trim() !== "");
             if (els.length === 1 && els[0].nodeType === 1) return els[0] as unknown as DOMOutputSpec;
-            // vic korenu - zabalit (vznika jen rucnim zapisem vice prvku do jednoho HTML bloku)
-            const wrap = document.createElement("div");
+            // vic korenu - zabalit (vznika jen rucnim zapisem vice prvku do jednoho HTML bloku);
+            // obal v inertnim dokumentu sablony - v dokumentu stranky by se obsah zacal nacitat
+            const wrap = tpl.content.ownerDocument.createElement("div");
             wrap.append(...Array.from(tpl.content.childNodes));
             return wrap as unknown as DOMOutputSpec;
         },
