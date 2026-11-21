@@ -75,8 +75,10 @@ Stav k 4. 10. 2026 (anoda + cestadocloudu, admin na jádru EasyAdmin): 1 492 tex
 **Bezpečnost obsahu.** Obsah pole je HTML z databáze, tedy i od jiného uživatele. Editor ho
 parsuje a skládá v inertním dokumentu (`document.implementation.createHTMLDocument`), takže
 `<img onerror>`, `<svg onload>` apod. se v administraci nespustí. Hostitel ale musí obsah
-do `<textarea>` vypsat **escapovaný** (Latte `{$value}`, ne `|noescape`; v JS escapovat
-`& < > " '`). Neescapovaný text s `</textarea>` ukončí pole a zbytek se vykoná jako HTML
+do `<textarea>` vypsat **escapovaný** - `htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE)`,
+v JS escapovat `& < > " '`. Pozor na Latte 3: `{$value}` v textu mění `{{` na `{<!-- -->{`
+a v textarea by komentář zůstal v obsahu doslova. Escapovat proto v PHP funkcí a vypsat
+s `|noescape` (`|` uvnitř výrazu bere Latte 3 jako filtr, i v závorkách). Neescapovaný text s `</textarea>` ukončí pole a zbytek se vykoná jako HTML
 stránky dřív, než se editor vůbec spustí.
 
 ### Samostatny editor kodu

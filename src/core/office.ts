@@ -16,6 +16,7 @@
  *
  * Vystup obsahuje jen povolene znacky - barva je <span data-ce-color>, kterou cte pasteParser.
  */
+import { inertDocument } from "./inertdoc";
 
 export type OfficeSource = "word" | "word-online" | "excel" | "gdocs" | "gsheets";
 
@@ -66,7 +67,8 @@ export function detectOffice(html: string): OfficeSource | null {
 export function cleanOfficeHTML(html: string, o: OfficeCleanOptions): OfficeCleanResult | null {
     const source = detectOffice(html);
     if (!source) return null;
-    const d = o.doc ?? document;
+    // vystup se sklada v inertnim dokumentu - obrazky ze schranky se pri cisteni nezacnou nacitat
+    const d = o.doc ?? inertDocument();
     const Parser = (d.defaultView as (Window & typeof globalThis) | null)?.DOMParser ?? DOMParser;
     const parsed = new Parser().parseFromString(html, "text/html");
     const cleaner = new Cleaner(d, o, classStyles(parsed));

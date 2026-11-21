@@ -15,6 +15,7 @@ import { addListNodes } from "prosemirror-schema-list";
 import { tableNodes } from "prosemirror-tables";
 import { safeHref, safeSrc, youtubeEmbed, CONTACT_FORM_ACTION, setJsActions } from "./urls";
 import { varText, varRegExp } from "./vartext";
+import { inertDocument } from "./inertdoc";
 
 // ---------------------------------------------------------------- pomocne
 
@@ -439,7 +440,8 @@ const nodes: Record<string, NodeSpec> = {
             },
         ],
         toDOM(node): DOMOutputSpec {
-            const tpl = document.createElement("template");
+            // inertni dokument - stejny jako pri parsovani a ukladani (jinak se rozbije <noscript>)
+            const tpl = inertDocument().createElement("template");
             tpl.innerHTML = node.attrs.html;
             const els = Array.from(tpl.content.childNodes).filter((n) => n.nodeType !== 3 || (n.textContent || "").trim() !== "");
             if (els.length === 1 && els[0].nodeType === 1) return els[0] as unknown as DOMOutputSpec;

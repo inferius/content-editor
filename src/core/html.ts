@@ -8,6 +8,7 @@
 import { DOMParser as PMDOMParser, DOMSerializer, Fragment, Slice, Node as PMNode, type NodeType, type ParseRule } from "prosemirror-model";
 import { schema } from "./schema";
 import { varRegExp } from "./vartext";
+import { inertDocument } from "./inertdoc";
 
 /** Parser pro nacteni ulozeneho obsahu - zachova i HTML bloky. */
 export const contentParser = PMDOMParser.fromSchema(schema);
@@ -59,19 +60,9 @@ function withoutForeignLook(rule: ParseRule): ParseRule {
 
 export const serializer = DOMSerializer.fromSchema(schema);
 
-let inertDoc: Document | null = null;
-
-/**
- * Dokument pro parsovani a skladani HTML obsahu. Vychozi je INERTNI dokument (bez okna):
- * prvky v nem nic nenacitaji a nespousti. Obsah je z databaze nebo od jineho uzivatele -
- * v dokumentu stranky by <img src=x onerror=...> nebo <svg onload> spustil skript uz pri
- * parsovani (innerHTML) nebo pri ukladani, i kdyz prvek nikdy nebyl na strance.
- * Vlastni doc predavaji jen nastroje v Node (roundtrip, paste-test).
- */
+/** Dokument pro parsovani a skladani HTML obsahu - vychozi inertni (viz inertdoc.ts). */
 function getDocument(doc?: Document): Document {
-    if (doc) return doc;
-    if (typeof document === "undefined") throw new Error("content-editor: chybi document");
-    return inertDoc ??= document.implementation.createHTMLDocument("");
+    return doc ?? inertDocument();
 }
 
 /** HTML retezec -> dokument. */

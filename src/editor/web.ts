@@ -45,7 +45,9 @@ export function frameDocument(bodyHtml: string, web: WebLook | null, opts: { pad
         `</head><body class="${esc(web?.bodyClass || "")}">${inner}</body></html>`;
 }
 
-const DROP_TAGS = "script, object, embed, applet, meta, base, frame, frameset, portal";
+// template: obsah <template> querySelectorAll neprochazi (neprosel by cistenim) a parser
+// dokumentu nahledu z <template shadowrootmode> udela shadow DOM - skript by se spustil
+const DROP_TAGS = "script, object, embed, applet, meta, base, frame, frameset, portal, template";
 const URL_ATTRS = ["href", "src", "action", "formaction", "xlink:href", "data", "poster", "background", "srcset"];
 
 /**
